@@ -12,7 +12,7 @@ namespace Natronite\Caribou\Controller;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Utils\Connection;
 
-class ModelMigration
+class TableMigration
 {
 
     /** @var  Table */

@@ -20,7 +20,7 @@
 namespace Natronite\Caribou;
 
 
-use Natronite\Caribou\Controller\Migration;
+use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Controller\Template;
 use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Table;
@@ -85,28 +85,16 @@ class Caribou
         // get tables
         $tables = Connection::getTables();
 
-        $template = new Template('migration');
-        $template->set('className', Loader::classNameForVersion('Migration', $version));
-
-        $tableNames = [];
         /** @var Table $table */
         foreach ($tables as $table) {
-            $tableNames[] = "'" . $table->getName() . "'";
             $this->generateTable($version, $table);
         }
-
-        $template->set('tableNames', implode(", ", $tableNames));
-        $template->set('version', $version);
-
-
-        $file = Loader::fileForVersion('Migration', $version);
-        file_put_contents($file, $template->getContent());
     }
 
     private function generateTable($version, Table $table)
     {
         $tableName = Loader::classNameForVersion($table->getName(), $version);
-        $template = new Template('model');
+        $template = new Template('table');
         $template->set('className', $tableName);
         $template->set('tableName', $table->getName());
 
@@ -144,7 +132,7 @@ class Caribou
         $versionFile = ".caribou";
         $currentVersion = "";
         if (is_file($versionFile)) {
-            $currentVersion = file_get_contents($versionFile);
+            $currentVersion = trim(file_get_contents($versionFile));
         }
 
         if (!is_dir($this->migrationsDir)) {
@@ -159,23 +147,58 @@ class Caribou
         foreach ($content as $c) {
             $versionDir = $this->migrationsDir . DIRECTORY_SEPARATOR . $c;
             if (is_dir($versionDir) && $c != "." && $c != ".." && $currentVersion < $c) {
-                echo "$version -> $c\n";
-                Loader::loadMigrationVersion($c);
-                $class = Loader::classNameForVersion('Migration', $c);
-                /** @var Migration $migration */
-                $migration = new $class;
-                $migration->run();
+                if ($version != "") {
+                    echo "$version -> $c\n";
+                } else {
+                    echo "$c\n";
+                }
+                $this->toVersion($c);
                 $version = $c;
             }
         }
 
         if ($version != $currentVersion) {
-            echo "Migrated from $currentVersion to $version\n";
+            echo "Migrated";
+            if ($currentVersion != "") {
+                echo " from " . $currentVersion;
+            }
+            echo " to $version\n";
             file_put_contents($versionFile, $version);
         } else {
-            echo "Nothing to migrate\nls -al
-            ";
+            echo "Nothing to migrate\n";
         }
     }
+
+    public function toVersion($version)
+    {
+        $dir = Loader::dirForVersion($version);
+        $files = glob($dir . "*.php");
+
+        $tables = array_map(
+            function ($element) {
+                return basename($element, ".php");
+            },
+            $files
+        );
+
+        $current = Connection::getTableNames();
+        Connection::begin();
+
+        // Alter tables
+        foreach ($tables as $table) {
+            Loader::loadModelVersion($table, $version);
+            $class = Loader::classNameForVersion($table, $version);
+
+            /** @var TableMigration $model */
+            $model = new $class;
+            $model->morph();
+        }
+
+        // Delete removed tables
+        Connection::dropTables(array_diff($current, $tables));
+
+        Connection::commit();
+    }
+
 
 }

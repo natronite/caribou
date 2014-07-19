@@ -24,13 +24,12 @@ class Loader
 
     public static function loadMigrationVersion($version)
     {
-        include_once self::fileForVersion('migration', $version);
+        include_once self::fileForVersion('caribou', $version);
     }
 
     public static function fileForVersion($name, $version)
     {
-        $className = self::classNameForVersion($name, $version);
-        return self::dirForVersion($version) . strtolower($className) . ".php";
+        return self::dirForVersion($version) . strtolower($name) . ".php";
     }
 
     public static function classNameForVersion($name, $version)

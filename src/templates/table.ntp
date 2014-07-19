@@ -1,10 +1,10 @@
 <?php
 
-use Natronite\Caribou\Controller\ModelMigration;
+use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Model\Column;
 
-class /*##CLASSNAME##*/ extends ModelMigration{
+class /*##CLASSNAME##*/ extends TableMigration{
 
 
     function __construct()
