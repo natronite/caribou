@@ -1,0 +1,22 @@
+{
+    "name": "natronite/caribou",
+    "type": "library",
+    "description": "This tool helps with mysql migration",
+    "keywords": ["mysql", "database", "migration"],
+    "license": "BSD-30-Clause",
+    "authors": [
+        {
+            "name": "Nate Maegli",
+            "email": "natronite@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.6"
+    },
+    "autoload": {
+        "psr-0": {
+            "Natronite\\Caribou": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
