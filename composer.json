@@ -18,5 +18,6 @@
             "Natronite\\Caribou": "src/"
         }
     },
+    "bin": ["caribou.php"],
     "minimum-stability": "dev"
 }
