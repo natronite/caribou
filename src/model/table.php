@@ -24,48 +24,46 @@ class Table
 
     private $name;
     private $columns = [];
-    private $createSyntax;
+    private $sql;
 
-    function __construct($createSyntax)
+    function __construct($name, array $columns)
     {
-        $this->createSyntax = trim($createSyntax);
+        $this->name = $name;
+        $this->columns = $columns;
+    }
 
+    public static function fromSQL($sql)
+    {
         $table = null;
 
-        preg_match('|^CREATE TABLE `(.*)`|', $this->createSyntax, $matches);
+        preg_match('|^CREATE TABLE `(.*)`|', $sql, $matches);
 
         if (count($matches) > 1) {
-            $this->name = $matches[1];
+            $name = $matches[1];
+            $columns = [];
 
-            $lines = explode(PHP_EOL, $this->createSyntax);
+            $lines = explode(PHP_EOL, $sql);
             /** @var Column $previousColumn */
             $previousColumn = false;
             foreach ($lines as $line) {
                 preg_match('|^`(.*)`|', trim($line), $matches);
                 if (count($matches) > 1) {
-                    $column = new Column($line);
+                    $column = Column::fromSQL($line);
                     if ($previousColumn) {
                         $column->setAfter($previousColumn->getName());
                     } else {
                         $column->setFirst(true);
                     }
-                    $this->addColumn($matches[1], $column);
+                    $columns[$matches[1]] = $column;
                     $previousColumn = $column;
                 }
             }
+            $table = new Table($name, $columns);
+            $table->setSql($sql);
         } else {
-            throw new Exception("Can't read mysql create syntax.\n" . $createSyntax);
+            throw new \Exception("Can't read mysql create syntax.\n" . $sql);
         }
         return $table;
-    }
-
-    /**
-     * @param $name
-     * @param Column $column
-     */
-    public function addColumn($name, Column $column)
-    {
-        $this->columns[$name] = $column;
     }
 
     /**
@@ -75,10 +73,8 @@ class Table
      */
     public static function computeAlter(Table $old, Table $new)
     {
-
         $oldColumnNames = array_keys($old->getColumns());
         $newColumnNames = array_keys($new->getColumns());
-
 
         $alterLines = [];
 
@@ -159,19 +155,28 @@ class Table
     }
 
     /**
-     * @return string
+     * @param $name
+     * @param Column $column
      */
-    public function getCreateSyntax()
+    public function addColumn($name, Column $column)
     {
-        return $this->createSyntax;
+        $this->columns[$name] = $column;
     }
 
     /**
-     * @param mixed $createSyntax
+     * @return string
      */
-    public function setCreateSyntax($createSyntax)
+    public function getSql()
     {
-        $this->createSyntax = $createSyntax;
+        return $this->sql;
+    }
+
+    /**
+     * @param string $sql
+     */
+    public function setSql($sql)
+    {
+        $this->sql = $sql;
     }
 
 }

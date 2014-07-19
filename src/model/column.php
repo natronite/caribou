@@ -34,9 +34,6 @@ class Column
     private $length;
 
     /** @var  string */
-    private $sql;
-
-    /** @var  string */
     private $after;
 
     /** @var bool */
@@ -45,34 +42,54 @@ class Column
     /** @var  bool */
     private $first = false;
 
-    /**
-     * @param string $sql the sql string
-     */
-    function __construct($sql)
+    function __construct($name, $definition, $sql = null)
     {
-        $this->sql = trim(trim($sql), ',');
+        $this->name = $name;
+
+        if (array_key_exists('after', $definition)) {
+            $this->after = $definition['after'];
+        }
+        if (array_key_exists('default', $definition)) {
+            $this->default = $definition['default'];
+        }
+        if (array_key_exists('first', $definition)) {
+            $this->first = $definition['first'];
+        }
+        if (array_key_exists('length', $definition)) {
+            $this->length = $definition['length'];
+        }
+
+        if (array_key_exists('notNull', $definition)) {
+            $this->notNull = $definition['notNull'];
+        }
+        if (array_key_exists('type', $definition)) {
+            $this->type = $definition['type'];
+        }
+    }
+
+
+    public static function fromSQL($sql)
+    {
+        $sql = trim(trim($sql), ',');
 
         preg_match(
-            "/^`(?P<name>.*)` (?P<type>\w*)(?P<length>\(.+\))? (?<notNull>NOT NULL)?.?(?:DEFAULT (?<default>'?\w*'?))?/",
-            $this->sql,
+            "/^`(?<name>.*)` (?<type>\w*)(?<length>\(.+\))?\s?(?<notNull>NOT NULL)?.?(?:DEFAULT (?<default>'?\w*'?))?/",
+            $sql,
             $matches
         );
 
-        $this->name = $matches['name'];
-        $this->type = $matches['type'];
-        $this->notNull = array_key_exists('notNull', $matches);
-
-        if (array_key_exists('length', $matches)) {
-            $this->length = $matches['length'];
+        if (array_key_exists('notNull', $matches)) {
+            $matches['notNull'] = true;
         } else {
-            $this->length = false;
+            $matches['notNull'] = true;
         }
 
-        if (array_key_exists('default', $matches)) {
-            $this->default = $matches['default'];
-        } else {
-            $this->default = false;
+        if (array_key_exists('length', $matches) && $matches['length'] == "") {
+            unset($matches['length']);
         }
+
+        $column = new Column($matches['name'], $matches, $sql);
+        return $column;
     }
 
     /**
@@ -82,11 +99,9 @@ class Column
      */
     public static function computeAlter(Column $old, Column $new)
     {
-
         if ($old->getSql() == $new->getSql()) {
             return false;
         }
-
         return "MODIFY COLUMN " . $new->getSql();
     }
 
@@ -95,7 +110,42 @@ class Column
      */
     public function getSql()
     {
-        return $this->sql;
+        $sql = "`" . $this->name . "` " . $this->type;
+
+        if (isset($this->length)) {
+            $sql .= $this->length;
+        }
+
+        if ($this->notNull) {
+            $sql .= " NOT NULL";
+        }
+
+        if (isset($this->default)) {
+            $sql .= " DEFAULT " . $this->default;
+        }
+
+        return $sql;
+    }
+
+    public function getDescription()
+    {
+        $desc = get_object_vars($this);
+        unset($desc['sql']);
+        unset($desc['name']);
+
+        $result = [];
+        foreach ($desc as $name => $col) {
+            if (isset($col) && !is_bool($col)) {
+                $result[$name] = $col;
+                continue;
+            }
+            if (is_bool($col) && $col === true) {
+                $result[$name] = $col;
+                continue;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -212,6 +262,6 @@ class Column
 
     public function __toString()
     {
-        return $this->sql;
+        return $this->getSql();
     }
 }  

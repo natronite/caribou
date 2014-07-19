@@ -1,0 +1,23 @@
+<?php
+
+use Natronite\Caribou\Controller\ModelMigration;
+use Natronite\Caribou\Model\Table;
+use Natronite\Caribou\Model\Column;
+
+class /*##CLASSNAME##*/ extends ModelMigration{
+
+
+    function __construct()
+    {
+        $table = new Table(
+            "/*##TABLENAME##*/",
+            array(/*##COLUMNS##*/)
+        );
+
+        $table->setSql(
+"/*##CREATE##*/"
+);
+
+$this->setTable($table);
+}
+}

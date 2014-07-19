@@ -33,22 +33,22 @@ if ($command != 'generate' && $command != 'run') {
 }
 
 $configFile = $argv[2];
-if(!is_file($configFile)){
+if (!is_file($configFile)) {
     echo "Cannot find config file " . $configFile . "\n\n";
 }
 
 
 // Try to load config
 $config = @parse_ini_file($configFile);
-if(!$config){
+if (!$config) {
     $pConfig = require_once $configFile;
-    if(!isset($pConfig) || !isset($pConfig->database)){
+    if (!isset($pConfig) || !isset($pConfig->database)) {
         echo "Error loading configuration " . $configFile . "\n\n";
     }
     $config = $pConfig->database;
 }
 
-if(count($argv) > 3) {
+if (count($argv) > 3) {
     $migrationsDir = $argv[3];
 } else {
     $migrationsDir = "migrations";
@@ -56,7 +56,7 @@ if(count($argv) > 3) {
 
 $caribou = new \Natronite\Caribou\Caribou($config, $migrationsDir);
 
-if($command == "generate"){
+if ($command == "generate") {
     $caribou->generate();
 } elseif ($command == "run") {
     $caribou->run();
