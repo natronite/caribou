@@ -22,14 +22,36 @@ namespace Natronite\Caribou\Model;
 class Table
 {
 
+    /** @var  string */
     private $name;
+
+    /** @var array */
     private $columns = [];
+
+    /** @var  string */
     private $sql;
 
-    function __construct($name, array $columns)
+    /** @var array */
+    private $indexes = [];
+
+    /** @var array */
+    private $references = [];
+
+    /** @var  string */
+    private $engine;
+
+    /** @var  string */
+    private $collation;
+
+    /** @var  string */
+    private $charset;
+
+    /** @var  string */
+    private $autoIncrement;
+
+    function __construct($name)
     {
         $this->name = $name;
-        $this->columns = $columns;
     }
 
     public static function fromSQL($sql)
@@ -58,8 +80,19 @@ class Table
                     $previousColumn = $column;
                 }
             }
-            $table = new Table($name, $columns);
+            $table = new Table($name);
+            $table->setColumns($columns);
             $table->setSql($sql);
+
+            preg_match(
+                '|ENGINE\s?=?\s?(?<engine>\w*) (?:DEFAULT)?\s?CHARSET\s?=?\s?(?<charset>\w*)|',
+                end($lines),
+                $matches
+            );
+
+            $table->setEngine($matches['engine']);
+            $table->setCharset($matches['charset']);
+
         } else {
             throw new \Exception("Can't read mysql create syntax.\n" . $sql);
         }
@@ -127,6 +160,14 @@ class Table
     }
 
     /**
+     * @param array $columns
+     */
+    public function setColumns($columns)
+    {
+        $this->columns = $columns;
+    }
+
+    /**
      * @param string $name The name of the column to get
      * @return Column|false The requested Column or false
      */
@@ -139,7 +180,7 @@ class Table
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
@@ -155,12 +196,99 @@ class Table
     }
 
     /**
-     * @param $name
-     * @param Column $column
+     * @return string
      */
-    public function addColumn($name, Column $column)
+    public function getAutoIncrement()
     {
-        $this->columns[$name] = $column;
+        return $this->autoIncrement;
+    }
+
+    /**
+     * @param string $autoIncrement
+     */
+    public function setAutoIncrement($autoIncrement)
+    {
+        $this->autoIncrement = $autoIncrement;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCharset()
+    {
+        return $this->charset;
+    }
+
+    /**
+     * @param string $charset
+     */
+    public function setCharset($charset)
+    {
+        $this->charset = $charset;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCollation()
+    {
+        return $this->collation;
+    }
+
+    /**
+     * @param string $collation
+     */
+    public function setCollation($collation)
+    {
+        $this->collation = $collation;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEngine()
+    {
+        return $this->engine;
+    }
+
+    /**
+     * @param string $engine
+     */
+    public function setEngine($engine)
+    {
+        $this->engine = $engine;
+    }
+
+    /**
+     * @return array
+     */
+    public function getIndexes()
+    {
+        return $this->indexes;
+    }
+
+    /**
+     * @param array $indexes
+     */
+    public function setIndexes($indexes)
+    {
+        $this->indexes = $indexes;
+    }
+
+    /**
+     * @return array
+     */
+    public function getReferences()
+    {
+        return $this->references;
+    }
+
+    /**
+     * @param array $references
+     */
+    public function setReferences($references)
+    {
+        $this->references = $references;
     }
 
     /**

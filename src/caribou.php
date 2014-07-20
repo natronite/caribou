@@ -23,6 +23,8 @@ namespace Natronite\Caribou;
 use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Controller\Template;
 use Natronite\Caribou\Model\Column;
+use Natronite\Caribou\Model\Index;
+use Natronite\Caribou\Model\Reference;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Utils\Connection;
 use Natronite\Caribou\Utils\Loader;
@@ -100,6 +102,7 @@ class Caribou
 
         $columns = [];
         $linePrefix = "\t\t";
+
         /** @var Column $column */
         foreach ($table->getColumns() as $column) {
             $c = $linePrefix;
@@ -111,8 +114,64 @@ class Caribou
         }
 
         $template->set('columns', "\n" . implode(",\n", $columns));
-
         $template->set('create', $table->getSql());
+        $template->set('engine', $table->getEngine());
+        $template->set('charset', $table->getCharset());
+        $template->set('collation', $table->getCollation());
+        if ($table->getAutoIncrement() != null) {
+            $template->set(
+                'autoIncrement',
+                "\n\t\t\t" . '$this->setAutoIncrement("' . $table->getAutoIncrement() . '");'
+            );
+        } else {
+            $template->set('autoIncrement', "");
+        }
+
+        /** @var Index $index */
+        $indexes = [];
+        foreach ($table->getIndexes() as $index) {
+            $c = $linePrefix
+                . "new Index("
+                . "\"" . $index->getName() . "\","
+                . "['" . implode('\', \'', $index->getColumns()) . "']";
+            if ($index->isUnique()) {
+                $c .= ", true";
+            }
+            $c .= ")";
+            $indexes[] = $c;
+        }
+        $template->set('indexes', "\n" . implode(",\n", $indexes));
+
+        /** @var Reference $reference */
+        $references = [];
+        foreach ($table->getReferences() as $reference) {
+            $r = $linePrefix
+                . "new Reference('"
+                . $reference->getName() . "', '"
+                . $reference->getColumn() . "', '"
+                . $reference->getReferencedTable() . "', '"
+                . $reference->getReferencedColumn() . "'";
+
+            if ($reference->getUpdateRule()) {
+                $r .= ", '" . $reference->getUpdateRule() . "'";
+            }
+            if ($reference->getDeleteRule()) {
+                $r .= ", '" . $reference->getDeleteRule() . "'";
+            }
+            $r .= ")";
+
+            $references[] = $r;
+        }
+
+        if (count($references)) {
+            $template->set(
+                'references',
+                "\n\t\t\t" . '$this->setReferences(' . "\n" . $linePrefix . implode(",\n", $references) . "\n);"
+            );
+        } else {
+            $template->set('references', "");
+        }
+
 
         $file = Loader::fileForVersion($table->getName(), $version);
         file_put_contents($file, $template->getContent());

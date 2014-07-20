@@ -32,17 +32,17 @@ class Loader
         return self::dirForVersion($version) . strtolower($name) . ".php";
     }
 
+    public static function dirForVersion($version)
+    {
+        return self::$migrationsDir . DIRECTORY_SEPARATOR . $version . DIRECTORY_SEPARATOR;
+    }
+
     public static function classNameForVersion($name, $version)
     {
         $n = str_replace('_', ' ', $name);
         $name = str_replace(" ", "", ucwords($n));
         $v = explode('.', $version);
         return $name . "_" . implode("_", $v);
-    }
-
-    public static function dirForVersion($version)
-    {
-        return self::$migrationsDir . DIRECTORY_SEPARATOR . $version . DIRECTORY_SEPARATOR;
     }
 
     public static function loadModelVersion($name, $version)
