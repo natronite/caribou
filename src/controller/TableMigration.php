@@ -8,7 +8,6 @@
 
 namespace Natronite\Caribou\Controller;
 
-
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Utils\Connection;
 
@@ -18,7 +17,7 @@ class TableMigration
     /** @var  Table */
     private $table;
 
-    public function morph()
+    public function migrateTable()
     {
         // Test if table exists
         if (Connection::tableExists($this->table->getName())) {
@@ -26,7 +25,7 @@ class TableMigration
             $current = Connection::getTable($this->table->getName());
             $alter = Table::computeAlter($current, $this->table);
             if ($alter) {
-                echo "Morphing table " . $this->table->getName() . "\n";
+                echo "Migrating table " . $this->table->getName() . "\n";
                 Connection::query($alter);
             }
 
@@ -35,6 +34,26 @@ class TableMigration
             echo "Creating table " . $this->table->getName() . "\n";
             Connection::query($this->table->getSql());
         }
+    }
+
+    public function createIndexes()
+    {
+
+    }
+
+    public function createReferences()
+    {
+
+    }
+
+    public function dropIndexes()
+    {
+
+    }
+
+    public function dropReferences()
+    {
+
     }
 
     /**

@@ -19,7 +19,7 @@
 
 namespace Natronite\Caribou;
 
-
+use Natronite\Caribou\Controller\Migration;
 use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Controller\Template;
 use Natronite\Caribou\Model\Column;
@@ -172,7 +172,6 @@ class Caribou
             $template->set('references', "");
         }
 
-
         $file = Loader::fileForVersion($table->getName(), $version);
         file_put_contents($file, $template->getContent());
     }
@@ -211,53 +210,22 @@ class Caribou
                 } else {
                     echo "$c\n";
                 }
-                $this->toVersion($c);
+
+                $migration = new Migration($c);
+                $migration->migrate();
                 $version = $c;
             }
         }
 
-        if ($version != $currentVersion) {
-            echo "Migrated";
-            if ($currentVersion != "") {
-                echo " from " . $currentVersion;
+            if ($version != $currentVersion) {
+                echo "Migrated";
+                if ($currentVersion != "") {
+                    echo " from " . $currentVersion;
+                }
+                echo " to $version\n";
+                file_put_contents($versionFile, $version);
+            } else {
+                echo "Nothing to migrate\n";
             }
-            echo " to $version\n";
-            file_put_contents($versionFile, $version);
-        } else {
-            echo "Nothing to migrate\n";
-        }
     }
-
-    public function toVersion($version)
-    {
-        $dir = Loader::dirForVersion($version);
-        $files = glob($dir . "*.php");
-
-        $tables = array_map(
-            function ($element) {
-                return basename($element, ".php");
-            },
-            $files
-        );
-
-        $current = Connection::getTableNames();
-        Connection::begin();
-
-        // Alter tables
-        foreach ($tables as $table) {
-            Loader::loadModelVersion($table, $version);
-            $class = Loader::classNameForVersion($table, $version);
-
-            /** @var TableMigration $model */
-            $model = new $class;
-            $model->morph();
-        }
-
-        // Delete removed tables
-        Connection::dropTables(array_diff($current, $tables));
-
-        Connection::commit();
-    }
-
-
 }
