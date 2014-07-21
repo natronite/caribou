@@ -9,7 +9,7 @@
 namespace Natronite\Caribou\Model;
 
 
-class Index
+class Index implements Descriptor
 {
 
     /** @var  string */
@@ -79,5 +79,21 @@ class Index
         $this->unique = $unique;
     }
 
+    /**
+     * @return string The sql statement to create the object
+     */
+    public function getCreateSql()
+    {
+        $unique = "";
+        if($this->unique){
+            $unique = " UNIQUE";
+        }
+        $query = "ADD" . $unique ." INDEX `" . $this->name . "` ";
+        if(isset($this->type)){
+           $query .= "";
+        }
+        $query .= "(" . implode(",", $this->columns) . ")";
 
+        return $query;
+    }
 } 

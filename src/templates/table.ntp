@@ -6,31 +6,23 @@ use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Reference;
 
-class /*##CLASSNAME##*/ extends TableMigration{
-
+class /*##CLASSNAME##*/ extends TableMigration
+{
 
     function __construct()
     {
-        $table = new Table(
-            "/*##TABLENAME##*/"
-        );
+        $table = new Table("/*##TABLENAME##*/");
+        $table->setEngine("/*##ENGINE##*/");
+        $table->setCollate("/*##COLLATE##*/");
+        $table->setCharset("/*##CHARSET##*/");
+        $table->setAutoIncrement("/*##AUTOINCREMENT##*/");
 
-        $table->setSql(
-"/*##CREATE##*/"
-);
+        $table->setColumns([/*##COLUMNS##*/]);
 
-$table->setColumns(
-array(/*##COLUMNS##*/)
-);
+        $table->setIndexes([/*##INDEXES##*/]);
 
-$table->setEngine("/*##ENGINE##*/");
-$table->setCollation("/*##COLLATION##*/");
-$table->setCharset("/*##CHARSET##*/");/*##AUTOINCREMENT##*/
+        $table->setReferences([/*##REFERENCES##*/]);
 
-$table->setIndexes(
-array(/*##INDEXES##*/)
-);/*##REFERENCES##*/
-
-$this->setTable($table);
-}
+        $this->setTable($table);
+    }
 }

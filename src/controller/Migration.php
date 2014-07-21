@@ -1,9 +1,9 @@
 <?php
 /**
- * 
+ *
  * @author: Nathanaël Mägli <nate@sidefyn.ch>
  */
- 
+
 
 namespace Natronite\Caribou\Controller;
 
@@ -11,10 +11,11 @@ namespace Natronite\Caribou\Controller;
 use Natronite\Caribou\Utils\Connection;
 use Natronite\Caribou\Utils\Loader;
 
-class Migration {
+class Migration
+{
 
     /** @var  string */
-private $version;
+    private $version;
 
     /** @var  array */
     private $tables = [];
@@ -24,7 +25,8 @@ private $version;
         $this->version = $version;
     }
 
-    public function migrate(){
+    public function migrate()
+    {
         $dir = Loader::dirForVersion($this->version);
         $files = glob($dir . "*.php");
 
@@ -42,7 +44,7 @@ private $version;
             Loader::loadModelVersion($table, $this->version);
             $class = Loader::classNameForVersion($table, $this->version);
 
-            $this->tables = new $class;
+            $this->tables[] = new $class;
         }
 
         $current = Connection::getTableNames();
@@ -57,37 +59,55 @@ private $version;
         $this->createReferences();
 
         // Delete removed tables
-        Connection::dropTables($removed);
+        //Connection::dropTables($removed);
 
         Connection::commit();
     }
 
-    protected function doTables(){
+    protected function doTables()
+    {
         /** @var TableMigration $table */
-        foreach($this->tables as $table){
+        foreach ($this->tables as $table) {
             $table->migrateTable();
         }
-    }
-
-    protected function createIndexes(){
-
-    }
-
-    protected function createReferences(){
-
     }
 
     /**
      * Drops unneeded indexes for every table
      */
-    protected function dropIndexes(){
+    protected function dropIndexes()
+    {
+        echo "Dropping indexes\n";
         /** @var TableMigration $table */
-        foreach($this->tables as $table){
+        foreach ($this->tables as $table) {
             $table->dropIndexes();
         }
     }
 
-    protected function dropReferences(){
+    protected function dropReferences()
+    {
+        echo "Dropping references\n";
+        /** @var TableMigration $table */
+        foreach ($this->tables as $table) {
+            $table->dropReferences();
+        }
+    }
 
+    protected function createIndexes()
+    {
+        echo "Creating indexes\n";
+        /** @var TableMigration $table */
+        foreach ($this->tables as $table) {
+            $table->createIndexes();
+        }
+    }
+
+    protected function createReferences()
+    {
+        echo "Creating references\n";
+        /** @var TableMigration $table */
+        foreach ($this->tables as $table) {
+            $table->createReferences();
+        }
     }
 }

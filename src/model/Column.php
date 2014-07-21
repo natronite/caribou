@@ -19,7 +19,7 @@
 
 namespace Natronite\Caribou\Model;
 
-class Column
+class Column implements Descriptor
 {
     /** @var  string */
     private $name;
@@ -35,6 +35,12 @@ class Column
 
     /** @var  string */
     private $after;
+
+    /** @var  string */
+    private $extra;
+
+    /** @var bool */
+    private $unsigned = false;
 
     /** @var bool */
     private $notNull = false;
@@ -264,4 +270,29 @@ class Column
     {
         return $this->getSql();
     }
+
+    /**
+     * @return string The sql statement to create the object
+     */
+    public function getCreateSql()
+    {
+        $query = "`" . $this->name . "` ";
+        $query .= $this->type . $this->length;
+        if(isset($this->unsigned) && $this->unsigned){
+            $query .= " unsigned";
+        }
+        if(isset($this->notNull) && $this->notNull){
+            $query .= " NOT NULL";
+        }
+        if(isset($this->default) ){
+            $query .= " DEFAULT " . $this->default;
+        }
+        if(isset($this->extra) ){
+            $query .= " " . $this->extra;
+        }
+
+        return $query;
+    }
+
+
 }  

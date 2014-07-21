@@ -9,20 +9,20 @@
 namespace Natronite\Caribou\Model;
 
 
-class Reference
+class Reference implements Descriptor
 {
 
     /** @var  string */
     private $name;
 
-    /** @var  string */
-    private $column;
+    /** @var  array */
+    private $columns = [];
 
     /** @var  string */
     private $referencedTable;
 
-    /** @var  string */
-    private $referencedColumn;
+    /** @var  array */
+    private $referencedColumns = [];
 
     /** @var  string */
     private $updateRule;
@@ -30,11 +30,11 @@ class Reference
     /** @var  string */
     private $deleteRule;
 
-    function __construct($name, $column, $referencedColumn, $referencedTable, $updateRule = null, $deleteRule = null)
+    function __construct($name, $columns, $referencedTable, $referencedColumns, $updateRule = null, $deleteRule = null)
     {
-        $this->column = $column;
+        $this->columns = $columns;
         $this->name = $name;
-        $this->referencedColumn = $referencedColumn;
+        $this->referencedColumns = $referencedColumns;
         $this->referencedTable = $referencedTable;
 
         if ($updateRule != "RESTRICT") {
@@ -47,11 +47,19 @@ class Reference
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getColumn()
+    public function getColumns()
     {
-        return $this->column;
+        return $this->columns;
+    }
+
+    /**
+     * @return array
+     */
+    public function getReferencedColumns()
+    {
+        return $this->referencedColumns;
     }
 
     /**
@@ -73,14 +81,6 @@ class Reference
     /**
      * @return string
      */
-    public function getReferencedColumn()
-    {
-        return $this->referencedColumn;
-    }
-
-    /**
-     * @return string
-     */
     public function getReferencedTable()
     {
         return $this->referencedTable;
@@ -94,5 +94,24 @@ class Reference
         return $this->updateRule;
     }
 
+    /**
+     * @return string The sql statement to create the object
+     */
+    public function getCreateSql()
+    {
+        $query = "ADD CONSTRAINT FOREIGN_KEY `" . $this->name . "` ";
+        $query .= "(" . implode(", ", $this->columns) . ")";
+        $query .= " REFERENCES " . $this->referencedTable . " (" . implode(", ", $this->referencedColumns) . ")";
+
+        if (isset($this->updateRule)) {
+            $query .= " ON UPDATE " . $this->updateRule;
+        }
+
+        if (isset($this->deleteRule)) {
+            $query .= " ON DELETE " . $this->deleteRule;
+        }
+
+        return $query;
+    }
 
 }

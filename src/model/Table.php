@@ -19,7 +19,7 @@
 
 namespace Natronite\Caribou\Model;
 
-class Table
+class Table implements Descriptor
 {
 
     /** @var  string */
@@ -27,9 +27,6 @@ class Table
 
     /** @var array */
     private $columns = [];
-
-    /** @var  string */
-    private $sql;
 
     /** @var array */
     private $indexes = [];
@@ -41,7 +38,7 @@ class Table
     private $engine;
 
     /** @var  string */
-    private $collation;
+    private $collate;
 
     /** @var  string */
     private $charset;
@@ -82,7 +79,6 @@ class Table
             }
             $table = new Table($name);
             $table->setColumns($columns);
-            $table->setSql($sql);
 
             preg_match(
                 '|.*CHARSET\s?=?\s?(?<charset>\w*)|',
@@ -229,17 +225,17 @@ class Table
     /**
      * @return string
      */
-    public function getCollation()
+    public function getCollate()
     {
-        return $this->collation;
+        return $this->collate;
     }
 
     /**
-     * @param string $collation
+     * @param string $collate
      */
-    public function setCollation($collation)
+    public function setCollate($collate)
     {
-        $this->collation = $collation;
+        $this->collate = $collate;
     }
 
     /**
@@ -290,20 +286,49 @@ class Table
         $this->references = $references;
     }
 
-    /**
-     * @return string
-     */
-    public function getSql()
-    {
-        return $this->sql;
+
+    public function getPrimary(){
+        /** @var Index $index*/
+        foreach($this->indexes as $index){
+            if($index->getName() == "PRIMARY"){
+                return $index->getColumns();
+            }
+        }
     }
 
     /**
-     * @param string $sql
+     * @return string The sql statement to create the object
      */
-    public function setSql($sql)
+    public function getCreateSql()
     {
-        $this->sql = $sql;
-    }
+        $query = "CREATE TABLE `" . $this->name . "` (";
 
+        $columns = array_map(
+            function ($val) {
+                /** @var $val Column */
+                return $val->getCreateSql();
+            },
+            $this->columns
+        );
+
+        $query .= "\n\t" . implode( ",\n\t", $columns ) . ",\n";
+
+        $query .= " PRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
+
+        $query .= "\n) ENGINE=" . $this->engine;
+
+        if (isset($this->autoIncrement)) {
+            $query .= " AUTO_INCREMENT=" . $this->autoIncrement;
+        }
+
+        if (isset($this->collate)) {
+            $query .= " COLLATE=" . $this->collate;
+        }
+
+        if (isset($this->charset)) {
+            $query .= " CHARSET=" . $this->charset;
+        }
+
+        return $query;
+    }
 }

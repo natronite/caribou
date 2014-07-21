@@ -20,13 +20,13 @@
 namespace Natronite\Caribou;
 
 use Natronite\Caribou\Controller\Migration;
-use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Controller\Template;
 use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Reference;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Utils\Connection;
+use Natronite\Caribou\Utils\Generator;
 use Natronite\Caribou\Utils\Loader;
 
 class Caribou
@@ -64,7 +64,7 @@ class Caribou
             }
         }
 
-        $this->generateVersion($version);
+        Generator::generateVersion($version, $this->migrationsDir);
     }
 
     /**
@@ -78,109 +78,6 @@ class Caribou
         $v = explode('.', $version);
         $v[count($v) - 1]++;
         return implode('.', $v);
-    }
-
-    private function generateVersion($version)
-    {
-        // create dir
-        mkdir($this->migrationsDir . DIRECTORY_SEPARATOR . $version);
-        // get tables
-        $tables = Connection::getTables();
-
-        /** @var Table $table */
-        foreach ($tables as $table) {
-            $this->generateTable($version, $table);
-        }
-    }
-
-    private function generateTable($version, Table $table)
-    {
-        $tableName = Loader::classNameForVersion($table->getName(), $version);
-        $template = new Template('table');
-        $template->set('className', $tableName);
-        $template->set('tableName', $table->getName());
-
-        $columns = [];
-        $linePrefix = "\t\t";
-
-        /** @var Column $column */
-        foreach ($table->getColumns() as $column) {
-            $c = $linePrefix;
-            $c .= "'" . $column->getName() . "' => new Column(";
-            $c .= "\n\t" . $linePrefix . "\"" . $column->getName() . "\",\n";
-            $c .= $this->varExport($column->getDescription(), $linePrefix . "\t");
-            $c .= "\n" . $linePrefix . ")";
-            $columns[] = $c;
-        }
-
-        $template->set('columns', "\n" . implode(",\n", $columns));
-        $template->set('create', $table->getSql());
-        $template->set('engine', $table->getEngine());
-        $template->set('charset', $table->getCharset());
-        $template->set('collation', $table->getCollation());
-        if ($table->getAutoIncrement() != null) {
-            $template->set(
-                'autoIncrement',
-                "\n\t\t\t" . '$this->setAutoIncrement("' . $table->getAutoIncrement() . '");'
-            );
-        } else {
-            $template->set('autoIncrement', "");
-        }
-
-        /** @var Index $index */
-        $indexes = [];
-        foreach ($table->getIndexes() as $index) {
-            $c = $linePrefix
-                . "new Index("
-                . "\"" . $index->getName() . "\","
-                . "['" . implode('\', \'', $index->getColumns()) . "']";
-            if ($index->isUnique()) {
-                $c .= ", true";
-            }
-            $c .= ")";
-            $indexes[] = $c;
-        }
-        $template->set('indexes', "\n" . implode(",\n", $indexes));
-
-        /** @var Reference $reference */
-        $references = [];
-        foreach ($table->getReferences() as $reference) {
-            $r = $linePrefix
-                . "new Reference('"
-                . $reference->getName() . "', '"
-                . $reference->getColumn() . "', '"
-                . $reference->getReferencedTable() . "', '"
-                . $reference->getReferencedColumn() . "'";
-
-            if ($reference->getUpdateRule()) {
-                $r .= ", '" . $reference->getUpdateRule() . "'";
-            }
-            if ($reference->getDeleteRule()) {
-                $r .= ", '" . $reference->getDeleteRule() . "'";
-            }
-            $r .= ")";
-
-            $references[] = $r;
-        }
-
-        if (count($references)) {
-            $template->set(
-                'references',
-                "\n\t\t\t" . '$table->setReferences(' . "\n" . $linePrefix . implode(",\n", $references) . "\n);"
-            );
-        } else {
-            $template->set('references', "");
-        }
-
-        $file = Loader::fileForVersion($table->getName(), $version);
-        file_put_contents($file, $template->getContent());
-    }
-
-    private function varExport(array $array, $linePrefix)
-    {
-        $lines = explode(PHP_EOL, var_export($array, true));
-        $result = implode(PHP_EOL . $linePrefix, $lines);
-        return $linePrefix . $result;
     }
 
     public function run()
@@ -217,15 +114,15 @@ class Caribou
             }
         }
 
-            if ($version != $currentVersion) {
-                echo "Migrated";
-                if ($currentVersion != "") {
-                    echo " from " . $currentVersion;
-                }
-                echo " to $version\n";
-                file_put_contents($versionFile, $version);
-            } else {
-                echo "Nothing to migrate\n";
+        if ($version != $currentVersion) {
+            echo "Migrated";
+            if ($currentVersion != "") {
+                echo " from " . $currentVersion;
             }
+            echo " to $version\n";
+            file_put_contents($versionFile, $version);
+        } else {
+            echo "Nothing to migrate\n";
+        }
     }
 }

@@ -88,7 +88,7 @@ class Connection
             while ($c = $showCreateTable->fetch_array()) {
                 $table = Table::fromSQL($c[1]);
                 $options = Connection::getTableStatus($table->getName());
-                $table->setCollation($options['collation']);
+                $table->setCollate($options['collate']);
                 $table->setEngine($options['engine']);
                 if (array_key_exists('autoIncrement', $options)) {
                     $table->setAutoIncrement($options['autoIncrement']);
@@ -129,7 +129,7 @@ class Connection
 
         $result = [
             'engine' => $c['Engine'],
-            'collation' => $c['Collation'],
+            'collate' => $c['Collation'],
         ];
 
         if (isset($c['Auto_increment'])) {
@@ -180,20 +180,31 @@ class Connection
                 . " AND `u`.TABLE_SCHEMA='" . $db[0] . "'"
                 . " AND `u`.REFERENCED_TABLE_SCHEMA IS NOT NULL";
 
+
             $refs = self::query($query);
             if ($refs) {
+                $data = [];
                 while ($r = $refs->fetch_array()) {
+                    $data[$r['CONSTRAINT_NAME']]['tableRef'] = $r['REFERENCED_TABLE_NAME'];
+                    $data[$r['CONSTRAINT_NAME']]['columns'][] = $r['COLUMN_NAME'];
+                    $data[$r['CONSTRAINT_NAME']]['columnRefs'][] = $r['REFERENCED_COLUMN_NAME'];
+                    $data[$r['CONSTRAINT_NAME']]['updateRule'] = $r['UPDATE_RULE'];
+                    $data[$r['CONSTRAINT_NAME']]['deleteRule'] = $r['DELETE_RULE'];
+                }
+
+                foreach ($data as $key => $val) {
                     $references[] = new Reference(
-                        $r['CONSTRAINT_NAME'],
-                        $r['COLUMN_NAME'],
-                        $r['REFERENCED_TABLE_NAME'],
-                        $r['REFERENCED_COLUMN_NAME'],
-                        $r['UPDATE_RULE'],
-                        $r['DELETE_RULE']
+                        $key,
+                        $val['columns'],
+                        $val['tableRef'],
+                        $val['columnRefs'],
+                        $val['updateRule'],
+                        $val['deleteRule']
                     );
                 }
             }
         }
+
         return $references;
     }
 

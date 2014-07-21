@@ -31,6 +31,34 @@ class Template
      */
     public function getContent()
     {
-        return $this->content;
+        $lines = explode(PHP_EOL, $this->content);
+        $doDelete = false;
+        $delete = [];
+        $prev = 0;
+        foreach ($lines as $key => $line) {
+            $delete[$key] = false;
+            // check if semicolon or empty line
+            if (strpos($line, "/*##") !== false) {
+                // This is an element which hasn't been replaced;
+                $doDelete = true;
+            }
+            if (strpos($line, ";") !== false) {
+                if ($doDelete) {
+                    for ($i = $prev + 1; $i <= $key; $i++) {
+                        $delete[$i] = true;
+                    }
+                    $doDelete = false;
+                }
+                $prev = $key;
+            }
+        }
+
+        foreach ($delete as $key => $value) {
+            if ($value) {
+                unset($lines[$key]);
+            }
+        }
+
+        return implode(PHP_EOL, $lines);
     }
 }
