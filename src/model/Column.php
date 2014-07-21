@@ -67,6 +67,22 @@ class Column implements Descriptor
     }
 
     /**
+     * @return boolean
+     */
+    public function isFirst()
+    {
+        return $this->first;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAfter()
+    {
+        return $this->after;
+    }
+
+    /**
      * @param $old
      * @param $new
      * @return bool|string

@@ -41,57 +41,11 @@ class Table implements Descriptor
     private $collate;
 
     /** @var  string */
-    private $charset;
-
-    /** @var  string */
     private $autoIncrement;
 
     function __construct($name)
     {
         $this->name = $name;
-    }
-
-    public static function fromSQL($sql)
-    {
-        $table = null;
-
-        preg_match('|^CREATE TABLE `(.*)`|', $sql, $matches);
-
-        if (count($matches) > 1) {
-            $name = $matches[1];
-            $columns = [];
-
-            $lines = explode(PHP_EOL, $sql);
-            /** @var Column $previousColumn */
-            $previousColumn = false;
-            foreach ($lines as $line) {
-                preg_match('|^`(.*)`|', trim($line), $matches);
-                if (count($matches) > 1) {
-                    $column = Column::fromSQL($line);
-                    if ($previousColumn) {
-                        $column->setAfter($previousColumn->getName());
-                    } else {
-                        $column->setFirst(true);
-                    }
-                    $columns[$matches[1]] = $column;
-                    $previousColumn = $column;
-                }
-            }
-            $table = new Table($name);
-            $table->setColumns($columns);
-
-            preg_match(
-                '|.*CHARSET\s?=?\s?(?<charset>\w*)|',
-                end($lines),
-                $matches
-            );
-
-            $table->setCharset($matches['charset']);
-
-        } else {
-            throw new \Exception("Can't read mysql create syntax.\n" . $sql);
-        }
-        return $table;
     }
 
     /**
@@ -216,22 +170,6 @@ class Table implements Descriptor
     /**
      * @return string
      */
-    public function getCharset()
-    {
-        return $this->charset;
-    }
-
-    /**
-     * @param string $charset
-     */
-    public function setCharset($charset)
-    {
-        $this->charset = $charset;
-    }
-
-    /**
-     * @return string
-     */
     public function getCollate()
     {
         return $this->collate;
@@ -330,10 +268,6 @@ class Table implements Descriptor
 
         if (isset($this->collate)) {
             $query .= " COLLATE=" . $this->collate;
-        }
-
-        if (isset($this->charset)) {
-            $query .= " CHARSET=" . $this->charset;
         }
 
         return $query;

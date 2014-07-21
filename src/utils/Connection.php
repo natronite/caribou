@@ -86,26 +86,9 @@ class Connection
     {
         $tables = [];
 
-        /** @var \mysqli_result $result */
         $tableNames = self::getTableNames();
         foreach ($tableNames as $tableName) {
-            /** @var \mysqli_result $showCreateTable */
-                $table = new Table($tableName);
-                self::fillTableColumns($table);
-                $options = Connection::getTableStatus($table->getName());
-                $table->setCollate($options['collate']);
-                $table->setEngine($options['engine']);
-                if (array_key_exists('autoIncrement', $options)) {
-                    $table->setAutoIncrement($options['autoIncrement']);
-                }
-
-                $indexes = Connection::getTableIndices($table->getName());
-                $table->setIndexes($indexes);
-
-                $references = Connection::getTableReferences($table->getName());
-                $table->setReferences($references);
-
-                $tables[$table->getName()] = $table;
+                $tables[$tableName] = self::getTable($tableName);
         }
 
         return $tables;
@@ -234,11 +217,22 @@ class Connection
 
     public static function getTable($name)
     {
-        /** @var \mysqli_result $showCreateTable */
-        $showCreateTable = self::$mysqli->query("SHOW CREATE TABLE `" . $name . "`");
+        $table = new Table($name);
+        self::fillTableColumns($table);
+        $options = Connection::getTableStatus($table->getName());
+        $table->setCollate($options['collate']);
+        $table->setEngine($options['engine']);
+        if (array_key_exists('autoIncrement', $options)) {
+            $table->setAutoIncrement($options['autoIncrement']);
+        }
 
-        $c = $showCreateTable->fetch_array();
-        return Table::fromSQL($c[1]);
+        $indexes = Connection::getTableIndices($table->getName());
+        $table->setIndexes($indexes);
+
+        $references = Connection::getTableReferences($table->getName());
+        $table->setReferences($references);
+
+        return $table;
     }
 
     public static function tableExists($name)

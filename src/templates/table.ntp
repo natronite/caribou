@@ -14,7 +14,6 @@ class /*##CLASSNAME##*/ extends TableMigration
         $table = new Table("/*##TABLENAME##*/");
         $table->setEngine("/*##ENGINE##*/");
         $table->setCollate("/*##COLLATE##*/");
-        $table->setCharset("/*##CHARSET##*/");
         $table->setAutoIncrement("/*##AUTOINCREMENT##*/");
 
         $table->setColumns(

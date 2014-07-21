@@ -51,7 +51,6 @@ class Generator
     {
         $template->set('tableName', $table->getName());
         $template->set('engine', $table->getEngine());
-        $template->set('charset', $table->getCharset());
         $template->set('collate', $table->getCollate());
         if ($table->getAutoIncrement() !== null) {
             $template->set('autoIncrement', $table->getAutoIncrement());
