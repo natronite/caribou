@@ -79,8 +79,11 @@ class Generator
             $c = "new Index("
                 . "\"" . $index->getName() . "\","
                 . "['" . implode('\', \'', $index->getColumns()) . "']";
-            if ($index->isUnique()) {
-                $c .= ", true";
+            if ($index->isUnique() || $index->getType() !== null) {
+                $c .= ", " . ($index->isUnique() ? "true" : "false");
+            }
+            if($index->getType() !== null){
+                $c .= ", '". $index->getType() . "'";
             }
             $c .= ")";
             $indexes[] = $c;

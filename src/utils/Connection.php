@@ -108,7 +108,7 @@ class Connection
     }
     public static function fillTableColumns(Table $table)
     {
-        $res = self::query("SHOW COLUMNS FROM `". $table->getName() . "`");
+        $res = self::query("SHOW FULL COLUMNS FROM `". $table->getName() . "`");
         if($res){
             $previous = false;
             while($c = $res->fetch_array()){
@@ -156,12 +156,13 @@ class Connection
             while ($t = $result->fetch_array()) {
                 $data[$t['Key_name']]['columns'][] = $t['Column_name'];
                 $data[$t['Key_name']]['unique'] = !$t['Non_unique'];
+                $data[$t['Key_name']]['type'] = $t['Index_type'];
             }
         }
 
         $indexes = [];
         foreach ($data as $key => $index) {
-            $indexes[] = new Index($key, $index['columns'], $index['unique']);
+            $indexes[] = new Index($key, $index['columns'], $index['unique'], $index['type']);
         }
 
         return $indexes;

@@ -37,10 +37,13 @@ class Column implements Descriptor
     private $extra;
 
     /** @var bool */
-    private $null = true;
+    private $isNull = true;
 
     /** @var  bool */
     private $first = false;
+
+    /** @var  string */
+    private $comment;
 
     function __construct($name, $definition)
     {
@@ -52,17 +55,22 @@ class Column implements Descriptor
         if (array_key_exists('after', $definition)) {
             $this->after = $definition['after'];
         }
-        if (array_key_exists('Default', $definition) && $definition['Default'] != "") {
+        if (array_key_exists('Default', $definition) && $definition['Default'] != '') {
             $this->default = $definition['Default'];
         }
-        if (array_key_exists('Null', $definition)) {
-            $this->null = $definition['Null'] == ("YES" || true) ? true : false;
+        if (array_key_exists('Null', $definition) ) {
+            if($definition['Null'] == "NO" || $definition['Null'] === false) {
+                $this->isNull = false;
+            }
         }
         if (array_key_exists('Type', $definition)) {
             $this->type = $definition['Type'];
         }
         if (array_key_exists('Extra', $definition) && $definition['Extra'] != "") {
             $this->extra = strtoupper($definition['Extra']);
+        }
+        if (array_key_exists('Comment', $definition) && $definition['Comment'] != "") {
+            $this->comment = $definition['Comment'];
         }
     }
 
@@ -102,14 +110,22 @@ class Column implements Descriptor
     {
         $query = "`" . $this->name . "` ";
         $query .= $this->type;
-        if (!$this->null) {
+        if (!$this->isNull) {
             $query .= " NOT NULL";
         }
         if (isset($this->default)) {
-            $query .= " DEFAULT " . $this->default;
+            if(is_numeric($this->default) || $this->default == 'CURRENT_TIMESTAMP') {
+                $query .= " DEFAULT " . $this->default;
+            } else {
+                $query .= " DEFAULT '" . $this->default . "'";
+            }
         }
         if (isset($this->extra)) {
             $query .= " " . $this->extra;
+        }
+
+        if (isset($this->comment)) {
+            $query .= " COMMENT '" . $this->comment . "'";
         }
 
         return $query;
@@ -127,7 +143,7 @@ class Column implements Descriptor
         if (isset($this->default)) {
             $definition['Default'] = $this->default;
         }
-        if (!$this->null) {
+        if (!$this->isNull) {
             $definition['Null'] = false;
         }
         if (isset($this->type)) {
@@ -135,6 +151,9 @@ class Column implements Descriptor
         }
         if (isset($this->extra)) {
             $definition['Extra'] = $this->extra;
+        }
+        if (isset($this->comment)) {
+            $definition['Comment'] = $this->comment;
         }
 
         return $definition;

@@ -37,11 +37,11 @@ class Reference implements Descriptor
         $this->referencedColumns = $referencedColumns;
         $this->referencedTable = $referencedTable;
 
-        if ($updateRule != "RESTRICT" && $updateRule != "NO ACTION") {
+        if ($updateRule != "RESTRICT") {
             $this->updateRule = $updateRule;
         }
 
-        if ($deleteRule != "RESTRICT"&& $deleteRule != "NO ACTION") {
+        if ($deleteRule != "RESTRICT") {
             $this->deleteRule = $deleteRule;
         }
     }
@@ -99,7 +99,7 @@ class Reference implements Descriptor
      */
     public function getCreateSql()
     {
-        $query = "ADD CONSTRAINT FOREIGN KEY `" . $this->name . "` ";
+        $query = "ADD CONSTRAINT `" . $this->name . "` FOREIGN KEY ";
         $query .= "(`" . implode("`, `", $this->columns) . "`)";
         $query .= " REFERENCES `" . $this->referencedTable . "` (`" . implode("`, `", $this->referencedColumns) . "`)";
 

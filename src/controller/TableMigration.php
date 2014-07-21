@@ -28,14 +28,12 @@ class TableMigration
             $alter = Table::computeAlter($current, $this->table);
             if ($alter) {
                 echo "Migrating table " . $this->table->getName() . "\n";
-                echo "\n$alter\n";
                 Connection::query($alter);
             }
 
         } else {
             // create table
             echo "Creating table " . $this->table->getName() . "\n";
-            echo "\n" . $this->table->getCreateSql() . "\n";
             Connection::query($this->table->getCreateSql());
         }
     }

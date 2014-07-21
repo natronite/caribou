@@ -24,11 +24,14 @@ class Index implements Descriptor
     /** @var  string */
     private $type;
 
-    function __construct($name, $columns, $unique = false)
+    function __construct($name, $columns, $unique = false, $type = null)
     {
         $this->columns = $columns;
         $this->name = $name;
         $this->unique = $unique;
+        if($type != "BTREE") {
+            $this->type = $type;
+        }
     }
 
     /**
@@ -84,16 +87,27 @@ class Index implements Descriptor
      */
     public function getCreateSql()
     {
-        $unique = "";
+        $type = "";
         if($this->unique){
-            $unique = " UNIQUE";
+            $type .= " UNIQUE";
         }
-        $query = "ADD" . $unique ." INDEX `" . $this->name . "` ";
+        if($this->type !== null){
+            $type .= " " . $this->type;
+        }
+        $query = "ADD" . $type ." KEY `" . $this->name . "` ";
         if(isset($this->type)){
            $query .= "";
         }
         $query .= "(" . implode(",", $this->columns) . ")";
 
         return $query;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
     }
 } 
