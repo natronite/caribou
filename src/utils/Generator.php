@@ -17,7 +17,7 @@ use Natronite\Caribou\Model\Table;
 
 class Generator
 {
-    const LINE_PREFIX = "\t\t\t";
+    const LINE_PREFIX = "\t\t\t\t";
 
     public static function generateVersion($version, $migrationsDir)
     {
@@ -63,14 +63,13 @@ class Generator
         /** @var Column $column */
         $columns = [];
         foreach ($table->getColumns() as $column) {
-            $c = self::LINE_PREFIX;
-            $c .= "'" . $column->getName() . "' => new Column(";
+            $c = "'" . $column->getName() . "' => new Column(";
             $c .= "\n\t" . self::LINE_PREFIX . "\"" . $column->getName() . "\",\n";
             $c .= Generator::varExport($column->getDescription(), self::LINE_PREFIX . "\t");
             $c .= "\n" . self::LINE_PREFIX . ")";
             $columns[] = $c;
         }
-        $template->set('columns', "\n" . implode(",\n", $columns));
+        $template->set('columns', implode(",\n" . self::LINE_PREFIX, $columns));
     }
 
     private static function generateIndexes(Template $template, Table $table)
@@ -78,8 +77,7 @@ class Generator
         /** @var Index $index */
         $indexes = [];
         foreach ($table->getIndexes() as $index) {
-            $c = self::LINE_PREFIX
-                . "new Index("
+            $c = "new Index("
                 . "\"" . $index->getName() . "\","
                 . "['" . implode('\', \'', $index->getColumns()) . "']";
             if ($index->isUnique()) {
@@ -88,7 +86,7 @@ class Generator
             $c .= ")";
             $indexes[] = $c;
         }
-        $template->set('indexes', "\n" . implode(",\n", $indexes));
+        $template->set('indexes', implode(",\n" . self::LINE_PREFIX, $indexes));
     }
 
     private static function generateReferences(Template $template, Table $table)
@@ -96,8 +94,7 @@ class Generator
         /** @var Reference $reference */
         $references = [];
         foreach ($table->getReferences() as $reference) {
-            $r = self::LINE_PREFIX
-                . "new Reference('"
+            $r = "new Reference('"
                 . $reference->getName() . "', "
                 . "['" . implode("', '", $reference->getColumns()) . "'], '"
                 . $reference->getReferencedTable() . "', "
@@ -113,7 +110,9 @@ class Generator
 
             $references[] = $r;
         }
-        $template->set('references', "\n" . implode(",\n", $references));
+        if(!empty($references)) {
+            $template->set('references', implode(",\n" . self::LINE_PREFIX, $references));
+        }
     }
 
     private static function varExport(array $array, $linePrefix)

@@ -17,11 +17,23 @@ class /*##CLASSNAME##*/ extends TableMigration
         $table->setCharset("/*##CHARSET##*/");
         $table->setAutoIncrement("/*##AUTOINCREMENT##*/");
 
-        $table->setColumns([/*##COLUMNS##*/]);
+        $table->setColumns(
+            [
+                /*##COLUMNS##*/
+            ]
+        );
 
-        $table->setIndexes([/*##INDEXES##*/]);
+        $table->setIndexes(
+            [
+                /*##INDEXES##*/
+            ]
+        );
 
-        $table->setReferences([/*##REFERENCES##*/]);
+        $table->setReferences(
+            [
+                /*##REFERENCES##*/
+            ]
+        );
 
         $this->setTable($table);
     }
