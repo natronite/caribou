@@ -163,6 +163,13 @@ class Table implements Descriptor
     }
 
     /**
+     * @param Column $column
+     */
+    public function addColumn(Column $column){
+        $this->columns[$column->getName()] = $column;
+    }
+
+    /**
      * @param string $name The name of the column to get
      * @return Column|false The requested Column or false
      */

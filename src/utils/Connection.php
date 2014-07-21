@@ -8,6 +8,7 @@
 
 namespace Natronite\Caribou\Utils;
 
+use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Reference;
 use Natronite\Caribou\Model\Table;
@@ -89,10 +90,8 @@ class Connection
         $tableNames = self::getTableNames();
         foreach ($tableNames as $tableName) {
             /** @var \mysqli_result $showCreateTable */
-            $showCreateTable = self::$mysqli->query("SHOW CREATE TABLE `" . $tableName . "`", true);
-
-            while ($c = $showCreateTable->fetch_array()) {
-                $table = Table::fromSQL($c[1]);
+                $table = new Table($tableName);
+                self::fillTableColumns($table);
                 $options = Connection::getTableStatus($table->getName());
                 $table->setCollate($options['collate']);
                 $table->setEngine($options['engine']);
@@ -106,8 +105,7 @@ class Connection
                 $references = Connection::getTableReferences($table->getName());
                 $table->setReferences($references);
 
-                $tables[$c[0]] = $table;
-            }
+                $tables[$table->getName()] = $table;
         }
 
         return $tables;
@@ -124,6 +122,26 @@ class Connection
         }
 
         return $tables;
+    }
+    public static function fillTableColumns(Table $table)
+    {
+        $res = self::query("SHOW COLUMNS FROM `". $table->getName() . "`");
+        if($res){
+            $previous = false;
+            while($c = $res->fetch_array()){
+                if(!$previous){
+                    $c['first'] = true;
+                } else {
+                    $c['after'] = $previous;
+                }
+                $table->addColumn(  new Column(
+                    $c['Field'],
+                    $c
+                ));
+
+                $previous = $c['Field'];
+            }
+        }
     }
 
     public static function getTableStatus($name)

@@ -31,71 +31,39 @@ class Column implements Descriptor
     private $default;
 
     /** @var  string */
-    private $length;
-
-    /** @var  string */
     private $after;
 
     /** @var  string */
     private $extra;
 
     /** @var bool */
-    private $unsigned = false;
-
-    /** @var bool */
-    private $notNull = false;
+    private $null = true;
 
     /** @var  bool */
     private $first = false;
 
-    function __construct($name, $definition, $sql = null)
+    function __construct($name, $definition)
     {
         $this->name = $name;
 
-        if (array_key_exists('after', $definition)) {
-            $this->after = $definition['after'];
-        }
-        if (array_key_exists('default', $definition)) {
-            $this->default = $definition['default'];
-        }
         if (array_key_exists('first', $definition)) {
             $this->first = $definition['first'];
         }
-        if (array_key_exists('length', $definition)) {
-            $this->length = $definition['length'];
+        if (array_key_exists('after', $definition)) {
+            $this->after = $definition['after'];
         }
-
-        if (array_key_exists('notNull', $definition)) {
-            $this->notNull = $definition['notNull'];
+        if (array_key_exists('Default', $definition) && $definition['Default'] != "") {
+            $this->default = $definition['Default'];
         }
-        if (array_key_exists('type', $definition)) {
-            $this->type = $definition['type'];
+        if (array_key_exists('Null', $definition)) {
+            $this->null = $definition['Null'] == ("YES" || true) ? true : false;
         }
-    }
-
-
-    public static function fromSQL($sql)
-    {
-        $sql = trim(trim($sql), ',');
-
-        preg_match(
-            "/^`(?<name>.*)` (?<type>\w*)(?<length>\(.+\))?\s?(?<notNull>NOT NULL)?.?(?:DEFAULT (?<default>'?\w*'?))?/",
-            $sql,
-            $matches
-        );
-
-        if (array_key_exists('notNull', $matches)) {
-            $matches['notNull'] = true;
-        } else {
-            $matches['notNull'] = true;
+        if (array_key_exists('Type', $definition)) {
+            $this->type = $definition['Type'];
         }
-
-        if (array_key_exists('length', $matches) && $matches['length'] == "") {
-            unset($matches['length']);
+        if (array_key_exists('Extra', $definition) && $definition['Extra'] != "") {
+            $this->extra = strtoupper($definition['Extra']);
         }
-
-        $column = new Column($matches['name'], $matches, $sql);
-        return $column;
     }
 
     /**
@@ -105,133 +73,55 @@ class Column implements Descriptor
      */
     public static function computeAlter(Column $old, Column $new)
     {
-        if ($old->getSql() == $new->getSql()) {
+        if ($old->getCreateSql() == $new->getCreateSql()) {
             return false;
         }
-        return "MODIFY COLUMN " . $new->getSql();
+        return "MODIFY COLUMN " . $new->getCreateSql();
     }
 
     /**
-     * @return string
+     * @return string The sql statement to create the object
      */
-    public function getSql()
+    public function getCreateSql()
     {
-        $sql = "`" . $this->name . "` " . $this->type;
-
-        if (isset($this->length)) {
-            $sql .= $this->length;
+        $query = "`" . $this->name . "` ";
+        $query .= $this->type;
+        if (!$this->null) {
+            $query .= " NOT NULL";
         }
-
-        if ($this->notNull) {
-            $sql .= " NOT NULL";
-        }
-
         if (isset($this->default)) {
-            $sql .= " DEFAULT " . $this->default;
+            $query .= " DEFAULT " . $this->default;
+        }
+        if (isset($this->extra)) {
+            $query .= " " . $this->extra;
         }
 
-        return $sql;
+        return $query;
     }
 
     public function getDescription()
     {
-        $desc = get_object_vars($this);
-        unset($desc['sql']);
-        unset($desc['name']);
-
-        $result = [];
-        foreach ($desc as $name => $col) {
-            if (isset($col) && !is_bool($col)) {
-                $result[$name] = $col;
-                continue;
-            }
-            if (is_bool($col) && $col === true) {
-                $result[$name] = $col;
-                continue;
-            }
+        $definition = [];
+        if ($this->first) {
+            $definition['first'] = true;
+        }
+        if (isset($this->after)) {
+            $definition['after'] = $this->after;
+        }
+        if (isset($this->default)) {
+            $definition['Default'] = $this->default;
+        }
+        if (!$this->null) {
+            $definition['Null'] = false;
+        }
+        if (isset($this->type)) {
+            $definition['Type'] = $this->type;
+        }
+        if (isset($this->extra)) {
+            $definition['Extra'] = $this->extra;
         }
 
-        return $result;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isFirst()
-    {
-        return $this->first;
-    }
-
-    /**
-     * @param boolean $first
-     */
-    public function setFirst($first)
-    {
-        $this->first = $first;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isNotNull()
-    {
-        return $this->notNull;
-    }
-
-    /**
-     * @param boolean $notNull
-     */
-    public function setNotNull($notNull)
-    {
-        $this->notNull = $notNull;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getAfter()
-    {
-        return $this->after;
-    }
-
-    /**
-     * @param boolean $after
-     */
-    public function setAfter($after)
-    {
-        $this->after = $after;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getDefault()
-    {
-        return $this->default;
-    }
-
-    /**
-     * @param string $default
-     */
-    public function setDefault($default)
-    {
-        $this->default = $default;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getLength()
-    {
-        return $this->length;
-    }
-
-    /**
-     * @param mixed $length
-     */
-    public function setLength($length)
-    {
-        $this->length = $length;
+        return $definition;
     }
 
     /**
@@ -242,57 +132,9 @@ class Column implements Descriptor
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * @param string $type
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-    }
-
     public function __toString()
     {
-        return $this->getSql();
+        return $this->getCreateSql();
     }
-
-    /**
-     * @return string The sql statement to create the object
-     */
-    public function getCreateSql()
-    {
-        $query = "`" . $this->name . "` ";
-        $query .= $this->type . $this->length;
-        if(isset($this->unsigned) && $this->unsigned){
-            $query .= " unsigned";
-        }
-        if(isset($this->notNull) && $this->notNull){
-            $query .= " NOT NULL";
-        }
-        if(isset($this->default) ){
-            $query .= " DEFAULT " . $this->default;
-        }
-        if(isset($this->extra) ){
-            $query .= " " . $this->extra;
-        }
-
-        return $query;
-    }
-
 
 }  
