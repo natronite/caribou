@@ -85,12 +85,11 @@ class Table
             $table->setSql($sql);
 
             preg_match(
-                '|ENGINE\s?=?\s?(?<engine>\w*) (?:DEFAULT)?\s?CHARSET\s?=?\s?(?<charset>\w*)|',
+                '|.*CHARSET\s?=?\s?(?<charset>\w*)|',
                 end($lines),
                 $matches
             );
 
-            $table->setEngine($matches['engine']);
             $table->setCharset($matches['charset']);
 
         } else {
