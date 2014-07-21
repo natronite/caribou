@@ -48,7 +48,7 @@ class Caribou
 
     public function generate()
     {
-        echo "Running Caribou MySQL migration\n";
+        echo "Generating Caribou MySQL migration\n";
 
         $version = "0.0.0";
         if (!is_dir($this->migrationsDir)) {
@@ -166,7 +166,7 @@ class Caribou
         if (count($references)) {
             $template->set(
                 'references',
-                "\n\t\t\t" . '$this->setReferences(' . "\n" . $linePrefix . implode(",\n", $references) . "\n);"
+                "\n\t\t\t" . '$table->setReferences(' . "\n" . $linePrefix . implode(",\n", $references) . "\n);"
             );
         } else {
             $template->set('references', "");

@@ -4,6 +4,7 @@ use Natronite\Caribou\Controller\TableMigration;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;
+use Natronite\Caribou\Model\Reference;
 
 class /*##CLASSNAME##*/ extends TableMigration{
 
@@ -11,22 +12,22 @@ class /*##CLASSNAME##*/ extends TableMigration{
     function __construct()
     {
         $table = new Table(
-            "/*##TABLENAME##*/",
+            "/*##TABLENAME##*/"
         );
 
         $table->setSql(
 "/*##CREATE##*/"
 );
 
-$this->setColumns(
+$table->setColumns(
 array(/*##COLUMNS##*/)
 );
 
-$this->setEngine("/*##ENGINE##*/");
-$this->setCollation("/*##COLLATION##*/");
-$this->setCharset("/*##CHARSET##*/");/*##AUTOINCREMENT##*/
+$table->setEngine("/*##ENGINE##*/");
+$table->setCollation("/*##COLLATION##*/");
+$table->setCharset("/*##CHARSET##*/");/*##AUTOINCREMENT##*/
 
-$this->setIndexes(
+$table->setIndexes(
 array(/*##INDEXES##*/)
 );/*##REFERENCES##*/
 
