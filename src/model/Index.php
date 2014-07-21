@@ -88,15 +88,18 @@ class Index implements Descriptor
     public function getCreateSql()
     {
         $type = "";
-        if($this->unique){
+        if($this->name == "PRIMARY"){
+            $type = " PRIMARY";
+        } elseif($this->unique){
             $type .= " UNIQUE";
         }
         if($this->type !== null){
             $type .= " " . $this->type;
         }
-        $query = "ADD" . $type ." KEY `" . $this->name . "` ";
-        if(isset($this->type)){
-           $query .= "";
+        $query = "ADD" . $type ." KEY ";
+        if($this->name != "PRIMARY")
+        {
+            $query .= "`" . $this->name . "` ";
         }
         $query .= "(" . implode(",", $this->columns) . ")";
 
