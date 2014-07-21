@@ -43,23 +43,29 @@ class Connection
     public static function dropTables($tables)
     {
         foreach ($tables as $table) {
-            self::query("DROP TABLE `" . $table . "`");
+            self::query("DROP TABLE `" . $table . "`", true);
         }
     }
 
     /**
      * @param $query
+     * @param bool $execute
      * @return bool|\mysqli_result
      */
-    public static function query($query)
+    public static function query($query, $execute = true)
     {
-        $result = self::$mysqli->query($query);
-        if (!$result) {
-            echo "MySQL error with " . $query . "\n";
-            echo self::$mysqli->error . "\n";
-            if (self::$isTransaction) {
-                self::rollback();
+        $result = true;
+        if($execute) {
+            $result = self::$mysqli->query($query);
+            if (!$result) {
+                echo "MySQL error with " . $query . "\n";
+                echo self::$mysqli->error . "\n";
+                if (self::$isTransaction) {
+                    self::rollback();
+                }
             }
+        } else {
+            echo $query . "\n";
         }
         return $result;
     }
@@ -83,7 +89,7 @@ class Connection
         $tableNames = self::getTableNames();
         foreach ($tableNames as $tableName) {
             /** @var \mysqli_result $showCreateTable */
-            $showCreateTable = self::$mysqli->query("SHOW CREATE TABLE `" . $tableName . "`");
+            $showCreateTable = self::$mysqli->query("SHOW CREATE TABLE `" . $tableName . "`", true);
 
             while ($c = $showCreateTable->fetch_array()) {
                 $table = Table::fromSQL($c[1]);
@@ -112,7 +118,7 @@ class Connection
         $tables = [];
 
         /** @var \mysqli_result $result */
-        $result = self::$mysqli->query("SHOW TABLES");
+        $result = self::$mysqli->query("SHOW TABLES", true);
         while ($t = $result->fetch_array()) {
             $tables[] = $t[0];
         }
@@ -123,7 +129,7 @@ class Connection
     public static function getTableStatus($name)
     {
         /** @var \mysqli_result $showCreateTable */
-        $showCreateTable = self::$mysqli->query("SHOW TABLE STATUS LIKE '" . $name . "'");
+        $showCreateTable = self::$mysqli->query("SHOW TABLE STATUS LIKE '" . $name . "'", true);
 
         $c = $showCreateTable->fetch_array();
 
@@ -142,7 +148,7 @@ class Connection
     public static function getTableIndices($name)
     {
         /** @var \mysqli_result $result */
-        $result = self::$mysqli->query("SHOW INDEXES FROM `" . $name . "`");
+        $result = self::$mysqli->query("SHOW INDEXES FROM `" . $name . "`", true);
 
         $data = [];
         if ($result) {
@@ -163,7 +169,7 @@ class Connection
     public static function getTableReferences($name)
     {
         $references = [];
-        $result = self::query("SELECT DATABASE()");
+        $result = self::query("SELECT DATABASE()", true);
         if ($result) {
             $db = $result->fetch_array();
             $cols = [
@@ -181,7 +187,7 @@ class Connection
                 . " AND `u`.REFERENCED_TABLE_SCHEMA IS NOT NULL";
 
 
-            $refs = self::query($query);
+            $refs = self::query($query, true);
             if ($refs) {
                 $data = [];
                 while ($r = $refs->fetch_array()) {
@@ -219,7 +225,7 @@ class Connection
 
     public static function tableExists($name)
     {
-        $result = self::query("SHOW TABLES LIKE '$name'");
+        $result = self::query("SHOW TABLES LIKE '$name'", true);
         return $result->num_rows > 0;
     }
 

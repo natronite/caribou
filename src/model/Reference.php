@@ -37,11 +37,11 @@ class Reference implements Descriptor
         $this->referencedColumns = $referencedColumns;
         $this->referencedTable = $referencedTable;
 
-        if ($updateRule != "RESTRICT") {
+        if ($updateRule != "RESTRICT" && $updateRule != "NO ACTION") {
             $this->updateRule = $updateRule;
         }
 
-        if ($deleteRule != "RESTRICT") {
+        if ($deleteRule != "RESTRICT"&& $deleteRule != "NO ACTION") {
             $this->deleteRule = $deleteRule;
         }
     }
@@ -99,16 +99,16 @@ class Reference implements Descriptor
      */
     public function getCreateSql()
     {
-        $query = "ADD CONSTRAINT FOREIGN_KEY `" . $this->name . "` ";
-        $query .= "(" . implode(", ", $this->columns) . ")";
-        $query .= " REFERENCES " . $this->referencedTable . " (" . implode(", ", $this->referencedColumns) . ")";
-
-        if (isset($this->updateRule)) {
-            $query .= " ON UPDATE " . $this->updateRule;
-        }
+        $query = "ADD CONSTRAINT FOREIGN KEY `" . $this->name . "` ";
+        $query .= "(`" . implode("`, `", $this->columns) . "`)";
+        $query .= " REFERENCES `" . $this->referencedTable . "` (`" . implode("`, `", $this->referencedColumns) . "`)";
 
         if (isset($this->deleteRule)) {
             $query .= " ON DELETE " . $this->deleteRule;
+        }
+
+        if (isset($this->updateRule)) {
+            $query .= " ON UPDATE " . $this->updateRule;
         }
 
         return $query;

@@ -37,18 +37,16 @@ class Migration
             $files
         );
 
-
         // Load tables
-        $tables = [];
         foreach ($tableClasses as $table) {
             Loader::loadModelVersion($table, $this->version);
             $class = Loader::classNameForVersion($table, $this->version);
-
             $this->tables[] = new $class;
         }
 
         $current = Connection::getTableNames();
-        $removed = array_diff($current, $tables);
+        $removed = array_diff($current, $tableClasses);
+
         Connection::begin();
 
         $this->doTables();
@@ -58,14 +56,15 @@ class Migration
         $this->createIndexes();
         $this->createReferences();
 
-        // Delete removed tables
-        //Connection::dropTables($removed);
+        echo "Dropping tables\n";
+        Connection::dropTables($removed);
 
         Connection::commit();
     }
 
     protected function doTables()
     {
+        echo "Migrating indexes\n";
         /** @var TableMigration $table */
         foreach ($this->tables as $table) {
             $table->migrateTable();

@@ -96,7 +96,7 @@ class TableMigration
 
             $query .= implode(",\n\t", $statements);
 
-            echo "\n$query\n";
+            Connection::query($query);
         }
     }
 
@@ -115,7 +115,7 @@ class TableMigration
 
             $query .= implode(",\n\t", $statements);
 
-            echo "\n$query\n";
+            Connection::query($query);
         }
     }
 

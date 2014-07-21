@@ -311,9 +311,9 @@ class Table implements Descriptor
             $this->columns
         );
 
-        $query .= "\n\t" . implode( ",\n\t", $columns ) . ",\n";
+        $query .= "\n\t" . implode( ",\n\t", $columns ) . ",";
 
-        $query .= " PRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
+        $query .= "\n\tPRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
 
         $query .= "\n) ENGINE=" . $this->engine;
 
