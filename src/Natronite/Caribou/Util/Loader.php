@@ -6,7 +6,7 @@
  * Time: 21:59
  */
 
-namespace Natronite\Caribou\Utils;
+namespace Natronite\Caribou\Util;
 
 
 class Loader

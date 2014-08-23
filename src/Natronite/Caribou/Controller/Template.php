@@ -16,7 +16,7 @@ class Template
 
     function   __construct($name)
     {
-        $template = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'templates', $name . ".ntp"]);
+        $template = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Template', $name . ".ntp"]);
         $this->content = file_get_contents($template);
     }
 

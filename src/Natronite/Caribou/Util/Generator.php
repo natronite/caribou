@@ -6,7 +6,7 @@
  * Time: 14:15
  */
 
-namespace Natronite\Caribou\Utils;
+namespace Natronite\Caribou\Util;
 
 
 use Natronite\Caribou\Controller\Template;

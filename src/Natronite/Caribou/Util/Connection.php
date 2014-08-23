@@ -6,7 +6,7 @@
  * Time: 21:34
  */
 
-namespace Natronite\Caribou\Utils;
+namespace Natronite\Caribou\Util;
 
 use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;

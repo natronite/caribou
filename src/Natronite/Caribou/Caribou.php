@@ -25,9 +25,9 @@ use Natronite\Caribou\Model\Column;
 use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Reference;
 use Natronite\Caribou\Model\Table;
-use Natronite\Caribou\Utils\Connection;
-use Natronite\Caribou\Utils\Generator;
-use Natronite\Caribou\Utils\Loader;
+use Natronite\Caribou\Util\Connection;
+use Natronite\Caribou\Util\Generator;
+use Natronite\Caribou\Util\Loader;
 
 class Caribou
 {

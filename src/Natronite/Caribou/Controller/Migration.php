@@ -8,8 +8,8 @@
 namespace Natronite\Caribou\Controller;
 
 
-use Natronite\Caribou\Utils\Connection;
-use Natronite\Caribou\Utils\Loader;
+use Natronite\Caribou\Util\Connection;
+use Natronite\Caribou\Util\Loader;
 
 class Migration
 {

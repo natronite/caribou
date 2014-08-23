@@ -11,7 +11,7 @@ namespace Natronite\Caribou\Controller;
 use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Descriptor;
 use Natronite\Caribou\Model\Table;
-use Natronite\Caribou\Utils\Connection;
+use Natronite\Caribou\Util\Connection;
 
 class TableMigration
 {
