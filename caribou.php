@@ -54,6 +54,7 @@ if (count($argv) > 3) {
     $migrationsDir = "migrations";
 }
 
+
 $caribou = new \Natronite\Caribou\Caribou($config, $migrationsDir);
 
 if ($command == "generate") {
@@ -85,6 +86,6 @@ function __autoload($className)
         $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
     }
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-    $fileName = str_replace('Natronite' . DIRECTORY_SEPARATOR . 'Caribou', 'src', $fileName);
-    require $fileName;
+    $fileName =  'src' . DIRECTORY_SEPARATOR . $fileName;
+    require_once $fileName;
 }
