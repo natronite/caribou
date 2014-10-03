@@ -2,9 +2,9 @@
 
 /*
   +------------------------------------------------------------------------+
-  | Caribou                                             		           |
+  | Caribou                                                            |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2014 natronite     					                   |
+  | Copyright (c) 2014 natronite                                 |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file LICENSE                                  |
@@ -20,11 +20,6 @@
 namespace Natronite\Caribou;
 
 use Natronite\Caribou\Controller\Migration;
-use Natronite\Caribou\Controller\Template;
-use Natronite\Caribou\Model\Column;
-use Natronite\Caribou\Model\Index;
-use Natronite\Caribou\Model\Reference;
-use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Util\Connection;
 use Natronite\Caribou\Util\Generator;
 use Natronite\Caribou\Util\Loader;
@@ -80,9 +75,11 @@ class Caribou
         return implode('.', $v);
     }
 
-    public function run()
+    public function run(&$output = null)
     {
-        echo "Running Caribou MySQL migration\n";
+        if ($output != null) {
+            $output .= "\nRunning Caribou MySQL migration";
+        }
 
         $versionFile = ".caribou";
         $currentVersion = "";
@@ -92,7 +89,11 @@ class Caribou
 
         if (!is_dir($this->migrationsDir)) {
             // Nothing to do
-            exit(0);
+            if ($output == null) {
+                exit(0);
+            } else {
+                return;
+            }
         }
 
         // apply migrations one after the other
@@ -102,10 +103,13 @@ class Caribou
         foreach ($content as $c) {
             $versionDir = $this->migrationsDir . DIRECTORY_SEPARATOR . $c;
             if (is_dir($versionDir) && $c != "." && $c != ".." && $currentVersion < $c) {
-                if ($version != "") {
-                    echo "$version -> $c\n";
-                } else {
-                    echo "$c\n";
+
+                if ($output != null) {
+                    if ($version != "") {
+                        $output .= "\n$version -> $c";
+                    } else {
+                        $output .= "\n$c";
+                    }
                 }
 
                 $migration = new Migration($c);
@@ -115,14 +119,18 @@ class Caribou
         }
 
         if ($version != $currentVersion) {
-            echo "Migrated";
-            if ($currentVersion != "") {
-                echo " from " . $currentVersion;
+            if ($output != null) {
+                $output .= "\nMigrated";
+                if ($currentVersion != "") {
+                    $output .= " from " . $currentVersion;
+                }
+                $output .= "to $version";
             }
-            echo " to $version\n";
             file_put_contents($versionFile, $version);
         } else {
-            echo "Nothing to migrate\n";
+            if ($output != null) {
+                $output .= "\nNothing to migrate";
+            }
         }
     }
 }
