@@ -239,6 +239,7 @@ class Table implements Descriptor
                 return $index->getColumns();
             }
         }
+        return false;
     }
 
     /**
@@ -256,9 +257,11 @@ class Table implements Descriptor
             $this->columns
         );
 
-        $query .= "\n\t" . implode( ",\n\t", $columns ) . ",";
+        $query .= "\n\t" . implode( ",\n\t", $columns );
 
-        $query .= "\n\tPRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
+        if($this->getPrimary()) {
+            $query .= ",\n\tPRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
+        }
 
         $query .= "\n) ENGINE=" . $this->engine;
 
