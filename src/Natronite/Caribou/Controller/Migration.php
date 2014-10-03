@@ -49,9 +49,9 @@ class Migration
 
         Connection::begin();
 
-        $this->doTables();
-        $this->dropIndexes();
         $this->dropReferences();
+        $this->dropIndexes();
+        $this->doTables();
 
         $this->createIndexes();
         $this->createReferences();

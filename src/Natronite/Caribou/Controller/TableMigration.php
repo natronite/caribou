@@ -67,8 +67,7 @@ class TableMigration
         $current = Connection::getTableReferences($this->table->getName());
         $new = $this->table->getReferences();
 
-        $this->drop($current, $new, $this->table->getName(), 'CONSTRAINT');
-
+        $this->drop($current, $new, $this->table->getName(), 'FOREIGN KEY');
     }
 
     /**

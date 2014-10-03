@@ -75,10 +75,10 @@ class Caribou
         return implode('.', $v);
     }
 
-    public function run(&$output = null)
+    public function run(array &$output = null)
     {
-        if ($output != null) {
-            $output .= "\nRunning Caribou MySQL migration";
+        if (isset($output)) {
+            $output[] = "Running Caribou MySQL migration";
         }
 
         $versionFile = ".caribou";
@@ -89,7 +89,7 @@ class Caribou
 
         if (!is_dir($this->migrationsDir)) {
             // Nothing to do
-            if ($output == null) {
+            if (!isset($output)) {
                 exit(0);
             } else {
                 return;
@@ -104,11 +104,11 @@ class Caribou
             $versionDir = $this->migrationsDir . DIRECTORY_SEPARATOR . $c;
             if (is_dir($versionDir) && $c != "." && $c != ".." && $currentVersion < $c) {
 
-                if ($output != null) {
+                if (isset($output)) {
                     if ($version != "") {
-                        $output .= "\n$version -> $c";
+                        $output[] = "$version -> $c";
                     } else {
-                        $output .= "\n$c";
+                        $output[] = "$c";
                     }
                 }
 
@@ -119,17 +119,19 @@ class Caribou
         }
 
         if ($version != $currentVersion) {
-            if ($output != null) {
-                $output .= "\nMigrated";
+            if (isset($output)) {
+                $m = "Migrated";
                 if ($currentVersion != "") {
-                    $output .= " from " . $currentVersion;
+                    $m  .= " from " . $currentVersion;
                 }
-                $output .= "to $version";
+                $m  .= " to $version";
+
+                $output[] = $m;
             }
             file_put_contents($versionFile, $version);
         } else {
-            if ($output != null) {
-                $output .= "\nNothing to migrate";
+            if (isset($output)) {
+                $output[] = "Nothing to migrate";
             }
         }
     }
