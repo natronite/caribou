@@ -8,18 +8,21 @@
 
 namespace Natronite\Caribou\Controller;
 
-use Natronite\Caribou\Model\Index;
 use Natronite\Caribou\Model\Descriptor;
 use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Util\Connection;
 
-class TableMigration
+abstract class TableMigration
 {
-
     /** @var  Table */
     private $table;
 
-    public function migrateTable()
+    final public function getTableName()
+    {
+        return $this->table->getName();
+    }
+
+    final public function migrateTable()
     {
         // Test if table exists
         if (Connection::tableExists($this->table->getName())) {
@@ -38,15 +41,15 @@ class TableMigration
         }
     }
 
-    public function createIndexes()
+    final public function createIndexes()
     {
         $current = Connection::getTableIndices($this->table->getName());
         $new = $this->table->getIndexes();
 
-        $this->create( $new, $current,$this->table->getName());
+        $this->create($new, $current, $this->table->getName());
     }
 
-    public function createReferences()
+    final public function createReferences()
     {
         $current = Connection::getTableReferences($this->table->getName());
         $new = $this->table->getReferences();
@@ -54,7 +57,7 @@ class TableMigration
         $this->create($new, $current, $this->table->getName());
     }
 
-    public function dropIndexes()
+    final public function dropIndexes()
     {
         $current = Connection::getTableIndices($this->table->getName());
         $new = $this->table->getIndexes();
@@ -62,7 +65,7 @@ class TableMigration
         $this->drop($current, $new, $this->table->getName(), 'INDEX');
     }
 
-    public function dropReferences()
+    final public function dropReferences()
     {
         $current = Connection::getTableReferences($this->table->getName());
         $new = $this->table->getReferences();
@@ -70,15 +73,21 @@ class TableMigration
         $this->drop($current, $new, $this->table->getName(), 'FOREIGN KEY');
     }
 
+    final protected function query($query)
+    {
+        return Connection::query($query);
+    }
+
     /**
      * @param mixed $table
      */
-    public function setTable($table)
+    final public function setTable($table)
     {
         $this->table = $table;
     }
 
-    private function create(array $array1, array $array2, $tableName){
+    private function create(array $array1, array $array2, $tableName)
+    {
         $drop = $this->arrayDiffNamed($array1, $array2);
 
         if (!empty($drop)) {
@@ -97,7 +106,8 @@ class TableMigration
         }
     }
 
-    private function drop(array $array1, array $array2, $tableName, $dropType){
+    private function drop(array $array1, array $array2, $tableName, $dropType)
+    {
         $drop = $this->arrayDiffNamed($array1, $array2);
 
         if (!empty($drop)) {

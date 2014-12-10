@@ -8,6 +8,7 @@
 namespace Natronite\Caribou\Controller;
 
 
+use Natronite\Caribou\Model\Table;
 use Natronite\Caribou\Util\Connection;
 use Natronite\Caribou\Util\Loader;
 
@@ -49,6 +50,13 @@ class Migration
 
         Connection::begin();
 
+        // pre action for every table
+        foreach ($this->tables as $table) {
+            if (method_exists($table, 'pre')) {
+                $table->pre();
+            }
+        }
+
         $this->dropReferences();
         $this->dropIndexes();
         $this->doTables();
@@ -59,7 +67,15 @@ class Migration
         echo "Dropping tables\n";
         Connection::dropTables($removed);
 
+        // post action for every table
+        foreach ($this->tables as $table) {
+            if (method_exists($table, 'post')) {
+                $table->post();
+            }
+        }
+
         Connection::commit();
+        echo "";
     }
 
     protected function doTables()
