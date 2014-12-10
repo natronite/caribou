@@ -98,16 +98,20 @@ class Caribou
 
         // apply migrations one after the other
         $content = scandir($this->migrationsDir, SCANDIR_SORT_ASCENDING);
+        natsort($content);
 
         $version = $currentVersion;
+
         foreach ($content as $c) {
             $versionDir = $this->migrationsDir . DIRECTORY_SEPARATOR . $c;
-            if (is_dir($versionDir) && $c != "." && $c != ".." && $currentVersion < $c) {
+            if (is_dir($versionDir) && $c != "." && $c != ".." && strnatcmp($currentVersion, $c) < 0) {
 
                 if (isset($output)) {
                     if ($version != "") {
                         $output[] = "$version -> $c";
+                        echo "$version -> $c\n";
                     } else {
+                        echo "$c\n";
                         $output[] = "$c";
                     }
                 }
