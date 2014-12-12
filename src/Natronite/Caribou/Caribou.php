@@ -50,7 +50,9 @@ class Caribou
             echo "Creating migrations directory\n";
             mkdir($this->migrationsDir);
         } else {
-            $content = scandir($this->migrationsDir, SCANDIR_SORT_DESCENDING);
+            $content = scandir($this->migrationsDir);
+            natsort($content);
+            $content = array_reverse($content);
             foreach ($content as $c) {
                 if (is_dir($this->migrationsDir . DIRECTORY_SEPARATOR . $c) && $c != "." && $c != "..") {
                     $version = $this->increaseVersion($c);
@@ -63,7 +65,7 @@ class Caribou
     }
 
     /**
-     * Increases a version string by its smallest increment (0.0.2 -> 0.0.3)
+     * Increases a version string by its smallest increment (0.0.2 -> 0.0.3, 0.0.9 -> 0.1.0)
      *
      * @param string $version
      * @return string
@@ -72,6 +74,18 @@ class Caribou
     {
         $v = explode('.', $version);
         $v[count($v) - 1]++;
+        $lastIndex = count($v) - 1;
+        for ($index = $lastIndex; $index >= 0; $index = $index - 1) {
+            $value = $v[$index];
+            if ($index != 0 && $value >= 9) {
+                $v[$index] = 0;
+                $v[$index - 1]++;
+            } else {
+                if ($index == $lastIndex) {
+                    $v[$index] = $value + 1;
+                }
+            }
+        }
         return implode('.', $v);
     }
 
@@ -126,9 +140,9 @@ class Caribou
             if (isset($output)) {
                 $m = "Migrated";
                 if ($currentVersion != "") {
-                    $m  .= " from " . $currentVersion;
+                    $m .= " from " . $currentVersion;
                 }
-                $m  .= " to $version";
+                $m .= " to $version";
 
                 $output[] = $m;
             }
