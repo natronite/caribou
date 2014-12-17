@@ -73,7 +73,6 @@ class Caribou
     private function increaseVersion($version)
     {
         $v = explode('.', $version);
-        $v[count($v) - 1]++;
         $lastIndex = count($v) - 1;
         for ($index = $lastIndex; $index >= 0; $index = $index - 1) {
             $value = $v[$index];
