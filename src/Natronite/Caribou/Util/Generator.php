@@ -52,9 +52,9 @@ class Generator
         $template->set('tableName', $table->getName());
         $template->set('engine', $table->getEngine());
         $template->set('collate', $table->getCollate());
-        if ($table->getAutoIncrement() !== null) {
-            $template->set('autoIncrement', $table->getAutoIncrement());
-        }
+//        if ($table->getAutoIncrement() !== null) {
+//            $template->set('autoIncrement', $table->getAutoIncrement());
+//        }
     }
 
     private static function generateColumns(Template $template, Table $table)
