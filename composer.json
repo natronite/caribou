@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Natronite\\Caribou": "src/Natronite/Caribou"
+            "Natronite\\Caribou\\": "src/Natronite/Caribou"
         }
     },
     "bin": ["caribou.php"],
