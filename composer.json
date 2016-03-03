@@ -14,8 +14,8 @@
         "php": ">=5.3.6"
     },
     "autoload": {
-        "psr-0": {
-            "Natronite\\Caribou": "src/"
+        "psr-4": {
+            "Natronite\\Caribou": "src/Natronite/Caribou"
         }
     },
     "bin": ["caribou.php"],
