@@ -88,7 +88,8 @@ abstract class TableMigration
 
     private function create(array $array1, array $array2, $tableName)
     {
-        $drop = $this->arrayDiffNamed($array1, $array2);
+        //$drop = $this->arrayDiffNamed($array1, $array2);
+        $drop = $this->arrayDiffSql($array1, $array2);
 
         if (!empty($drop)) {
             // Prepare sql statement
@@ -108,7 +109,8 @@ abstract class TableMigration
 
     private function drop(array $array1, array $array2, $tableName, $dropType)
     {
-        $drop = $this->arrayDiffNamed($array1, $array2);
+        //$drop = $this->arrayDiffNamed($array1, $array2);
+        $drop = $this->arrayDiffSql($array1, $array2);
 
         if (!empty($drop)) {
             // Prepare sql statement
@@ -141,4 +143,18 @@ abstract class TableMigration
             }
         );
     }
-} 
+
+    private function arrayDiffSql(array $array1, array $array2)
+    {
+        return array_udiff(
+            $array1,
+            $array2,
+            function ($val1, $val2) {
+                if($val1->getCreateSql() == $val2->getCreateSql()){
+                    return 0;
+                }
+                return $val1->getCreateSql() > $val2->getCreateSql() ? 1 : -1;
+            }
+        );
+    }
+}
