@@ -184,7 +184,8 @@ class Connection
             ];
             $columnString = implode(", ", $cols);
             $query = "SELECT " . $columnString . " FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE as `u`"
-                . "JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS as `r` ON `r`.CONSTRAINT_NAME = `u`.CONSTRAINT_NAME"
+                . "JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS as `r` ON `r`.CONSTRAINT_NAME = `u`.CONSTRAINT_NAME AND `r`.REFERENCED_TABLE_NAME = `u`.REFERENCED_TABLE_NAME"
+                . " AND `r`.CONSTRAINT_SCHEMA='" . $db[0] . "'"
                 . " WHERE `u`.TABLE_NAME='" . $name . "'"
                 . " AND `u`.TABLE_SCHEMA='" . $db[0] . "'"
                 . " AND `u`.REFERENCED_TABLE_SCHEMA IS NOT NULL"
