@@ -182,11 +182,13 @@ class Connection
                 '`r`.UPDATE_RULE',
                 '`r`.DELETE_RULE'
             ];
-            $query = "SELECT " . implode(", ", $cols) . " FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE as `u`"
+            $columnString = implode(", ", $cols);
+            $query = "SELECT " . $columnString . " FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE as `u`"
                 . "JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS as `r` ON `r`.CONSTRAINT_NAME = `u`.CONSTRAINT_NAME"
                 . " WHERE `u`.TABLE_NAME='" . $name . "'"
                 . " AND `u`.TABLE_SCHEMA='" . $db[0] . "'"
-                . " AND `u`.REFERENCED_TABLE_SCHEMA IS NOT NULL";
+                . " AND `u`.REFERENCED_TABLE_SCHEMA IS NOT NULL"
+                . " GROUP BY " . $columnString;
 
 
             $refs = self::query($query, true);
