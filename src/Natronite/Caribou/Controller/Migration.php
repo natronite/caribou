@@ -28,6 +28,7 @@ class Migration
 
     public function migrate()
     {
+        echo "\n" . $this->version . "\n";
         $dir = Loader::dirForVersion($this->version);
         $files = glob($dir . "*.php");
 
@@ -75,7 +76,7 @@ class Migration
         }
 
         Connection::commit();
-        echo "";
+        echo "\n";
     }
 
     protected function doTables()
