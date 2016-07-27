@@ -245,4 +245,8 @@ class Connection
         return $result->num_rows > 0;
     }
 
-} 
+    public static function getInsertId(){
+        return self::$mysqli->insert_id;
+    }
+
+}

@@ -49,6 +49,11 @@ class Migration
         $current = Connection::getTableNames();
         $removed = array_diff($current, $tableClasses);
 
+        //we don't want the db_migration table removed
+        if(($key = array_search('db_migration', $removed)) !== false) {
+            unset($removed[$key]);
+        }
+
         Connection::begin();
 
         // pre action for every table

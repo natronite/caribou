@@ -94,10 +94,34 @@ class Caribou
             $output[] = "Running Caribou MySQL migration";
         }
 
-        $versionFile = ".caribou";
-        $currentVersion = "";
-        if (is_file($versionFile)) {
-            $currentVersion = trim(file_get_contents($versionFile));
+        //create db_migration table if it doesn't exist
+        $result = Connection::query("CREATE TABLE IF NOT EXISTS `db_migration`
+          ( `db_migration_id` INT(11) NOT NULL AUTO_INCREMENT , `from` VARCHAR(5) NOT NULL ,
+          `to` VARCHAR(5) NOT NULL , `status` VARCHAR(10) NOT NULL ,
+          `timestamp_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , `timestamp_edited` DATETIME NULL DEFAULT NULL ,
+          PRIMARY KEY (`db_migration_id`)) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_bin");
+
+        if($result === false){
+          die("Couldn't create db migration table.");
+        }
+
+        //get current version of the database
+        $result = Connection::query("SELECT * FROM `db_migration` WHERE 1 ORDER BY `db_migration_id` DESC LIMIT 1");
+        if($result->num_rows == 0){
+          $currentVersion = '0.0.0';
+        }
+        else{
+          $lastMigration = $result->fetch_assoc();
+          $currentVersion = $lastMigration['to'];
+          if($lastMigration['status'] !== 'migrated'){
+            // Nothing to do
+            if (!isset($output)) {
+                exit(0);
+            } else {
+                $output[] = "The last db_migration isn't finished migrating!";
+                return;
+            }
+          }
         }
 
         if (!is_dir($this->migrationsDir)) {
@@ -113,6 +137,28 @@ class Caribou
         $content = scandir($this->migrationsDir, SCANDIR_SORT_ASCENDING);
         natsort($content);
 
+        $from = $currentVersion;
+        $to = array_pop((array_slice($content, -1)));
+
+        if($from === $to){
+          //nothing to do
+          if (!isset($output)) {
+              exit(0);
+          } else {
+              $output[] = "Nothing to migrate";
+              return;
+          }
+        }
+
+        //insert current db migration into db_migration table within the database
+        $result = Connection::query("INSERT INTO `db_migration`(`from`, `to`, `status`)
+        VALUES ('".$from."', '".$to."', 'migrating')");
+        if($result === false){
+          die("Couldn't insert db migration into db_migration table");
+        }
+        $dbMigrationId = Connection::getInsertId();
+
+        //cycle trough migrating and migrate database.
         $version = $currentVersion;
 
         foreach ($content as $c) {
@@ -135,21 +181,19 @@ class Caribou
             }
         }
 
-        if ($version != $currentVersion) {
-            if (isset($output)) {
-                $m = "Migrated";
-                if ($currentVersion != "") {
-                    $m .= " from " . $currentVersion;
-                }
-                $m .= " to $version";
+        if (isset($output)) {
+            $m = "Migrated";
+            $m .= " from " . $from;
+            $m .= " to $to";
 
-                $output[] = $m;
-            }
-            file_put_contents($versionFile, $version);
-        } else {
-            if (isset($output)) {
-                $output[] = "Nothing to migrate";
-            }
+            $output[] = $m;
+        }
+
+        //update status to migrated
+        $result = Connection::query("UPDATE `db_migration`
+          SET `status` = 'migrated', `timestamp_edited` = now() WHERE `db_migration_id` = '".$dbMigrationId."'");
+        if($result === false){
+          die("Couldn't update db_migration entry");
         }
     }
 }
