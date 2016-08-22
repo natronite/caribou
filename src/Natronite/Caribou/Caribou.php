@@ -128,7 +128,7 @@ class Caribou
         natsort($content);
 
         $from = $currentVersion;
-        $to = array_pop((array_slice($content, -1)));
+        $to = end(array_slice($content, -1));
 
         if($from === $to){
           return $this->exit("Nothing to migrate", $output);
