@@ -102,7 +102,7 @@ class Caribou
           PRIMARY KEY (`db_migration_id`)) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_bin");
 
         if($result === false){
-          die("Couldn't create db migration table.");
+          return $this->exit("Couldn't create db migration table.", $output);
         }
 
         //get current version of the database
@@ -114,23 +114,13 @@ class Caribou
           $lastMigration = $result->fetch_assoc();
           $currentVersion = $lastMigration['to'];
           if($lastMigration['status'] !== 'migrated'){
-            // Nothing to do
-            if (!isset($output)) {
-                exit(0);
-            } else {
-                $output[] = "The last db_migration isn't finished migrating!";
-                return;
-            }
+            return $this->exit("The last db_migration isn't finished migrating!", $output);
           }
         }
 
         if (!is_dir($this->migrationsDir)) {
-            // Nothing to do
-            if (!isset($output)) {
-                exit(0);
-            } else {
-                return;
-            }
+            $message = "MigrationsDir is not a directory: ".var_export($this->migrationsDir, true);
+            return $this->exit($message, $output);
         }
 
         // apply migrations one after the other
@@ -141,20 +131,14 @@ class Caribou
         $to = array_pop((array_slice($content, -1)));
 
         if($from === $to){
-          //nothing to do
-          if (!isset($output)) {
-              exit(0);
-          } else {
-              $output[] = "Nothing to migrate";
-              return;
-          }
+          return $this->exit("Nothing to migrate", $output);
         }
 
         //insert current db migration into db_migration table within the database
         $result = Connection::query("INSERT INTO `db_migration`(`from`, `to`, `status`)
         VALUES ('".$from."', '".$to."', 'migrating')");
         if($result === false){
-          die("Couldn't insert db migration into db_migration table");
+          return $this->exit("Couldn't insert db migration into db_migration table", $output);
         }
         $dbMigrationId = Connection::getInsertId();
 
@@ -193,7 +177,16 @@ class Caribou
         $result = Connection::query("UPDATE `db_migration`
           SET `status` = 'migrated', `timestamp_edited` = now() WHERE `db_migration_id` = '".$dbMigrationId."'");
         if($result === false){
-          die("Couldn't update db_migration entry");
+          return $this->exit("Couldn't update db_migration entry", $output);
         }
+    }
+
+    private function exit($message, array &$output = null){
+      if(!isset($output)){
+        exit(0);
+      } else{
+        $output[] = $message;
+      }
+      return false;
     }
 }
