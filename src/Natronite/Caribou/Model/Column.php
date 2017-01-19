@@ -37,7 +37,7 @@ class Column implements Descriptor
     private $extra;
 
     /** @var bool */
-    private $isNull = true;
+    private $notNull = false;
 
     /** @var  bool */
     private $first = false;
@@ -55,12 +55,12 @@ class Column implements Descriptor
         if (array_key_exists('after', $definition)) {
             $this->after = $definition['after'];
         }
-        if (array_key_exists('Default', $definition) && $definition['Default'] != '') {
+        if (array_key_exists('Default', $definition) && $definition['Default'] !== '') {
             $this->default = $definition['Default'];
         }
-        if (array_key_exists('Null', $definition) ) {
-            if($definition['Null'] == "NO" || $definition['Null'] === false) {
-                $this->isNull = false;
+        if (array_key_exists('Null', $definition)) {
+            if ($definition['Null'] === 'NO' || $definition['Null'] === false) {
+                $this->notNull = true;
             }
         }
         if (array_key_exists('Type', $definition)) {
@@ -110,11 +110,11 @@ class Column implements Descriptor
     {
         $query = "`" . $this->name . "` ";
         $query .= $this->type;
-        if (!$this->isNull) {
+        if ($this->notNull === true) {
             $query .= " NOT NULL";
         }
         if (isset($this->default)) {
-            if(is_numeric($this->default) || $this->default == 'CURRENT_TIMESTAMP') {
+            if (is_numeric($this->default) || $this->default === 'CURRENT_TIMESTAMP' || $this->default === 'NULL') {
                 $query .= " DEFAULT " . $this->default;
             } else {
                 $query .= " DEFAULT '" . $this->default . "'";
@@ -143,7 +143,7 @@ class Column implements Descriptor
         if (isset($this->default)) {
             $definition['Default'] = $this->default;
         }
-        if (!$this->isNull) {
+        if ($this->notNull) {
             $definition['Null'] = false;
         }
         if (isset($this->type)) {
@@ -171,5 +171,4 @@ class Column implements Descriptor
     {
         return $this->getCreateSql();
     }
-
-}  
+}
