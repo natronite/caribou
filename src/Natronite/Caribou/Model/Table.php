@@ -93,8 +93,17 @@ class Table implements Descriptor
             $alterLines[] = "DROP COLUMN `" . $removedColumnName . "`";
         }
 
-        if (!empty($alterLines)) {
-            return "ALTER TABLE `" . $new->getName() . "`\n\t" . implode(",\n\t", $alterLines);
+        $tableEngineChanged = $old->getEngine() !== $new->getEngine();
+
+        if (!empty($alterLines) || $tableEngineChanged) {
+            $sql =  "ALTER TABLE `" . $new->getName() . "`";
+            if ($tableEngineChanged) {
+                $sql .= " ENGINE=" . $new->getEngine();
+            }
+            if (!empty($alterLines)) {
+                $sql .= "\n\t" . implode(",\n\t", $alterLines);
+            }
+            return $sql;
         }
 
         return false;
@@ -119,7 +128,8 @@ class Table implements Descriptor
     /**
      * @param Column $column
      */
-    public function addColumn(Column $column){
+    public function addColumn(Column $column)
+    {
         $this->columns[$column->getName()] = $column;
     }
 
@@ -232,10 +242,11 @@ class Table implements Descriptor
     }
 
 
-    public function getPrimary(){
+    public function getPrimary()
+    {
         /** @var Index $index*/
-        foreach($this->indexes as $index){
-            if($index->getName() == "PRIMARY"){
+        foreach ($this->indexes as $index) {
+            if ($index->getName() == "PRIMARY") {
                 return $index->getColumns();
             }
         }
@@ -257,9 +268,9 @@ class Table implements Descriptor
             $this->columns
         );
 
-        $query .= "\n\t" . implode( ",\n\t", $columns );
+        $query .= "\n\t" . implode(",\n\t", $columns);
 
-        if($this->getPrimary()) {
+        if ($this->getPrimary()) {
             $query .= ",\n\tPRIMARY KEY (" . implode(", ", $this->getPrimary()) . ")";
         }
 
