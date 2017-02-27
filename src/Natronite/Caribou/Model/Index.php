@@ -8,7 +8,6 @@
 
 namespace Natronite\Caribou\Model;
 
-
 class Index implements Descriptor
 {
 
@@ -29,7 +28,7 @@ class Index implements Descriptor
         $this->columns = $columns;
         $this->name = $name;
         $this->unique = $unique;
-        if($type != "BTREE") {
+        if ($type != "BTREE") {
             $this->type = $type;
         }
     }
@@ -88,20 +87,19 @@ class Index implements Descriptor
     public function getCreateSql()
     {
         $type = "";
-        if($this->name == "PRIMARY"){
+        if ($this->name == "PRIMARY") {
             $type = " PRIMARY";
-        } elseif($this->unique){
+        } elseif ($this->unique) {
             $type .= " UNIQUE";
         }
-        if($this->type !== null){
+        if ($this->type !== null) {
             $type .= " " . $this->type;
         }
         $query = "ADD" . $type ." KEY ";
-        if($this->name != "PRIMARY")
-        {
+        if ($this->name != "PRIMARY") {
             $query .= "`" . $this->name . "` ";
         }
-        $query .= "(" . implode(",", $this->columns) . ")";
+        $query .= "(`". implode("`,`", $this->columns) . "`)";
 
         return $query;
     }
@@ -113,4 +111,4 @@ class Index implements Descriptor
     {
         return $this->type;
     }
-} 
+}
